@@ -594,6 +594,10 @@ h1 em{color:var(--accent);font-style:italic;}
       <div id="total-done" class="header-total">0</div>
       <div class="header-total-label" id="total-done-label">TOTAL EXERCISES</div>
       <div id="total-time" class="header-time">00h 00m 00s</div>
+      <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:8px;">
+        <div id="total-reinforce" class="header-total" style="font-size:40px;color:var(--accent)">0</div>
+        <div class="header-total-label" id="total-reinforce-label">TOTAL REVIEW</div>
+      </div>
     </div>
   </header>
 
@@ -865,7 +869,7 @@ const LANGS = {
     exEyebrow: 'GRAMMAIRE FRANÇAISE — B1 / B2',
     exH1: 'EXERCICE<br><em>TRACKER</em>',
     exSub: 'Chronomètre · Historique · Révision · Tags',
-    totalDoneLabel: 'EXERCICES TOTAL', totalTimeLabel: 'h min temps total',
+    totalDoneLabel: 'EXERCICES TOTAL', totalTimeLabel: 'h min temps total', totalReinforceLabel: 'TOTAL RÉVISIONS',
     slWriting: 'ÉCRITURE', slListening: 'ÉCOUTE', slSpeaking: 'ORAL', slGrammar: 'GRAMMAIRE', slReinforce: 'RÉVISION',
     stWriting: 'Objectif : 5–10', stListening: 'Objectif : 8–12', stGrammar: 'Objectif : 20+',
     addTopicLabel: 'NOUVEAU SUJET',
@@ -955,7 +959,7 @@ const LANGS = {
     exEyebrow: 'GRAMÁTICA ESPAÑOLA — B1 / B2',
     exH1: 'EJERCICIO<br><em>TRACKER</em>',
     exSub: 'Cronómetro · Historial · Repaso · Tags',
-    totalDoneLabel: 'EJERCICIOS TOTAL', totalTimeLabel: 'h min tiempo total',
+    totalDoneLabel: 'EJERCICIOS TOTAL', totalTimeLabel: 'h min tiempo total', totalReinforceLabel: 'TOTAL REVISIONES',
     slWriting: 'ESCRITURA', slListening: 'ESCUCHA', slSpeaking: 'HABLAR', slGrammar: 'GRAMÁTICA', slReinforce: 'REPASO',
     stWriting: 'Meta: 5–10', stListening: 'Meta: 8–12', stGrammar: 'Meta: 20+',
     addTopicLabel: 'NUEVO TEMA',
@@ -1045,7 +1049,7 @@ const LANGS = {
     exEyebrow: 'РУССКАЯ ГРАММАТИКА — B1 / B2',
     exH1: 'ТРЕКЕР<br><em>ЯЗЫКА</em>',
     exSub: 'Хронометр · История · Повторение · Теги',
-    totalDoneLabel: 'УПРАЖНЕНИЙ ВСЕГО', totalTimeLabel: 'ч мин общее время',
+    totalDoneLabel: 'УПРАЖНЕНИЙ ВСЕГО', totalTimeLabel: 'ч мин общее время', totalReinforceLabel: 'ВСЕГО ПОВТОРЕНИЙ',
     slWriting: 'ПИСЬМО', slListening: 'АУДИРОВАНИЕ', slSpeaking: 'РЕЧЬ', slGrammar: 'ГРАММАТИКА', slReinforce: 'ПОВТОРЕНИЕ',
     stWriting: 'Цель: 5–10', stListening: 'Цель: 8–12', stGrammar: 'Цель: 20+',
     addTopicLabel: 'НОВАЯ ТЕМА',
@@ -1135,7 +1139,7 @@ const LANGS = {
     exEyebrow: 'ENGLISH GRAMMAR — B1 / B2',
     exH1: 'EXERCISE<br><em>TRACKER</em>',
     exSub: 'Chronometer · History · Review · Tags',
-    totalDoneLabel: 'TOTAL EXERCISES', totalTimeLabel: 'h min total time',
+    totalDoneLabel: 'TOTAL EXERCISES', totalTimeLabel: 'h min total time', totalReinforceLabel: 'TOTAL REVIEWS',
     slWriting: 'WRITING', slListening: 'LISTENING', slSpeaking: 'SPEAKING', slGrammar: 'GRAMMAR', slReinforce: 'REVIEW',
     stWriting: 'Goal: 5–10', stListening: 'Goal: 8–12', stGrammar: 'Goal: 20+',
     addTopicLabel: 'NEW TOPIC',
@@ -1246,6 +1250,7 @@ function applyLang() {
   setHTML('ex-h1', l.exH1);
   setText('ex-sub', l.exSub);
   setText('total-done-label', l.totalDoneLabel);
+  setText('total-reinforce-label', l.totalReinforceLabel);
   setText('sl-writing', l.slWriting); setText('sl-listening', l.slListening);
   setText('sl-speaking', l.slSpeaking); setText('sl-grammar', l.slGrammar); setText('sl-reinforce', l.slReinforce);
   setText('st-writing', l.stWriting); setText('st-listening', l.stListening); setText('st-grammar', l.stGrammar);
@@ -1587,6 +1592,7 @@ function renderGlobal() {
   document.getElementById('g-reinforce').textContent=gRtotal;
   document.getElementById('g-reinforce-sub').textContent=gRsolved+' '+l.reinforceSolvedSub+' / '+gRtotal+' total';
   document.getElementById('gb-reinforce').style.width=gRtotal>0?Math.round((gRsolved/gRtotal)*100)+'%':'0%';
+  const trEl=document.getElementById('total-reinforce'); if(trEl)trEl.textContent=gRtotal;
 }
 
 function renderFiltered() {
