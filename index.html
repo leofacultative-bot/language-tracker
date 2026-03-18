@@ -1,0 +1,2717 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deutsch Übungs-Tracker — B1/B2</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F5F0E8; --surface:#FDFAF4; --surface2:#EDE8DC;
+  --border:#D4CCBA; --border2:#C4BAA4;
+  --ink:#1A1610; --ink2:#3D3626; --muted:#8C8070;
+  --accent:#C0392B; --gold:#B8860B; --blue:#1A4A7A;
+  --green:#2D6A4F; --orange:#C65D00; --purple:#5B2C6F;
+  --grammatik:#1A4A7A;
+  --schreiben:#5B2C6F;
+  --hören:#C65D00; --sprechen:#1A6B5A; --wortschatz:#B8860B; --reinforce:#C0392B;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.4;
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 27px,rgba(180,168,140,.18) 27px,rgba(180,168,140,.18) 28px);}
+body::after{content:'';position:fixed;top:0;bottom:0;left:68px;width:1px;background:rgba(192,57,43,.12);pointer-events:none;z-index:0;}
+.wrap{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:0 28px 100px;}
+
+/* HEADER */
+header{padding:52px 0 36px;border-bottom:2px solid var(--ink);margin-bottom:36px;position:relative;}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:4px;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.eyebrow::before{content:'§';font-size:13px;}
+h1{font-family:'Playfair Display',serif;font-size:clamp(42px,7vw,78px);font-weight:900;color:var(--ink);line-height:.92;letter-spacing:-2px;}
+h1 em{color:var(--accent);font-style:italic;}
+.header-sub{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:12px;letter-spacing:1px;}
+.header-right{position:absolute;top:52px;right:0;text-align:right;display:flex;flex-direction:row;align-items:flex-start;gap:28px;}
+.header-total{font-family:'Playfair Display',serif;font-size:70px;font-weight:900;color:var(--ink);line-height:1;}
+.header-total-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--muted);margin-top:2px;}
+.header-time{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--blue);margin-top:4px;}
+
+/* STATS */
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr) 1.1fr;gap:8px;margin-bottom:32px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:14px 16px;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+
+.stat-card.schreiben::before{background:var(--schreiben);}.stat-card.hören::before{background:var(--hören);}.stat-card.sprechen::before{background:var(--sprechen);}.stat-card.grammatik::before{background:var(--grammatik);}
+.stat-card.sprechen::before{background:var(--sprechen);}.stat-card.reinforce::before{background:var(--reinforce);}
+.stat-label{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--muted);margin-bottom:5px;}
+.stat-num{font-family:'Playfair Display',serif;font-size:30px;font-weight:700;line-height:1;}
+
+.stat-card.schreiben .stat-num{color:var(--schreiben);}.stat-card.hören .stat-num{color:var(--hören);}.stat-card.sprechen .stat-num{color:var(--sprechen);}.stat-card.grammatik .stat-num{color:var(--grammatik);}
+.stat-card.sprechen .stat-num{color:var(--sprechen);}.stat-card.reinforce .stat-num{color:var(--reinforce);}
+.stat-sub{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);margin-top:3px;}
+.stat-bar{height:2px;background:var(--border);margin-top:8px;border-radius:1px;overflow:hidden;}
+.stat-bar-fill{height:100%;border-radius:1px;transition:width .5s ease;}
+
+.stat-card.schreiben .stat-bar-fill{background:var(--schreiben);}.stat-card.hören .stat-bar-fill{background:var(--hören);}.stat-card.sprechen .stat-bar-fill{background:var(--sprechen);}.stat-card.grammatik .stat-bar-fill{background:var(--grammatik);}
+.stat-card.sprechen .stat-bar-fill{background:var(--sprechen);}.stat-card.reinforce .stat-bar-fill{background:var(--reinforce);}
+
+/* TOOLBAR */
+.toolbar{display:flex;gap:8px;margin-bottom:12px;}
+.search-wrap{flex:1;position:relative;}
+.search-wrap::before{content:'⌕';position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px;pointer-events:none;}
+.search-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:3px;color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:10px 14px 10px 34px;outline:none;transition:border-color .2s;}
+.search-input:focus{border-color:var(--ink);}
+.search-input::placeholder{color:var(--muted);}
+.tag-filter{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:22px;min-height:24px;}
+.tag-filter-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);}
+.tag-pill{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 10px;border-radius:2px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--muted);transition:all .15s;}
+.tag-pill:hover{border-color:var(--ink);color:var(--ink);}
+.tag-pill.active{background:var(--ink);color:var(--bg);border-color:var(--ink);}
+
+/* ADD */
+.add-section{margin-bottom:28px;}
+.section-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:4px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:12px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.add-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;}
+.add-input{background:var(--surface);border:1px solid var(--border);border-radius:3px;color:var(--ink);font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:10px 14px;outline:none;transition:border-color .2s;width:100%;}
+.add-input:focus{border-color:var(--ink);}
+.add-input::placeholder{color:var(--muted);}
+.btn{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;padding:10px 20px;border-radius:3px;border:none;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn-ink{background:var(--ink);color:var(--bg);}
+.btn-ink:hover{background:var(--ink2);}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--muted);}
+.btn-ghost:hover{border-color:var(--ink);color:var(--ink);}
+
+/* TOPIC CARD */
+.topics{display:flex;flex-direction:column;gap:14px;}
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:20px 24px;position:relative;transition:box-shadow .2s;animation:slideIn .2s ease;}
+@keyframes slideIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.topic-card::before{content:'';position:absolute;top:0;bottom:0;left:0;width:3px;border-radius:3px 0 0 3px;background:var(--border);transition:background .2s;}
+.topic-card:hover::before{background:var(--accent);}
+.topic-card:hover{box-shadow:0 2px 14px rgba(0,0,0,.07);}
+.topic-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:12px;}
+.topic-left{flex:1;}
+.topic-name{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--ink);margin-bottom:5px;}
+.insight-line{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gold);margin-top:2px;}
+.topic-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
+.ttag{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 8px;border-radius:2px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .15s;letter-spacing:1px;}
+.ttag:hover{background:var(--ink);color:var(--bg);border-color:var(--ink);}
+.topic-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.topic-time{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--blue);}
+.topic-total{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--ink);}
+.topic-total span{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+.btn-delete{background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:4px;transition:color .15s;}
+.btn-delete:hover{color:var(--accent);}
+
+/* COUNTERS */
+.counters{display:grid;grid-template-columns:repeat(5,1fr) .85fr;gap:8px;margin-bottom:12px;}
+.counter{background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:11px 13px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden;}
+.counter::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;}
+.counter.lücken::after{background:var(--lücken);}.counter.übersetz::after{background:var(--übersetz);}
+.counter.schreiben::after{background:var(--schreiben);}.counter.hören::after{background:var(--hören);}
+.counter.schreiben::after{background:var(--schreiben);}.counter.hören::after{background:var(--hören);}.counter.sprechen::after{background:var(--sprechen);}.counter.grammatik::after{background:var(--grammatik);}.counter.reinforce::after{background:var(--reinforce);}
+.counter-label{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:1px;}
+.counter.lücken .counter-label{color:var(--lücken);}.counter.übersetz .counter-label{color:var(--übersetz);}
+.counter.schreiben .counter-label{color:var(--schreiben);}.counter.hören .counter-label{color:var(--hören);}
+.counter.schreiben .counter-label{color:var(--schreiben);}.counter.hören .counter-label{color:var(--hören);}.counter.sprechen .counter-label{color:var(--sprechen);}.counter.grammatik .counter-label{color:var(--grammatik);}.counter.reinforce .counter-label{color:var(--reinforce);}
+.counter-row{display:flex;align-items:center;justify-content:space-between;}
+.counter-num{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;line-height:1;}
+.counter.lücken .counter-num{color:var(--lücken);}.counter.übersetz .counter-num{color:var(--übersetz);}
+.counter.schreiben .counter-num{color:var(--schreiben);}.counter.hören .counter-num{color:var(--hören);}
+.counter.schreiben .counter-num{color:var(--schreiben);}.counter.hören .counter-num{color:var(--hören);}.counter.sprechen .counter-num{color:var(--sprechen);}.counter.grammatik .counter-num{color:var(--grammatik);}.counter.reinforce .counter-num{color:var(--reinforce);}
+.counter-num.bump{animation:bump .2s ease;}
+@keyframes bump{0%{transform:scale(1)}50%{transform:scale(1.25)}100%{transform:scale(1)}}
+.counter-time{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--blue);}
+.counter-target{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);}
+.counter-bar{height:2px;background:var(--border);overflow:hidden;}
+.counter-bar-fill{height:100%;transition:width .4s ease;}
+.counter.lücken .counter-bar-fill{background:var(--lücken);}.counter.übersetz .counter-bar-fill{background:var(--übersetz);}
+.counter.schreiben .counter-bar-fill{background:var(--schreiben);}.counter.hören .counter-bar-fill{background:var(--hören);}
+.counter.schreiben .counter-bar-fill{background:var(--schreiben);}.counter.hören .counter-bar-fill{background:var(--hören);}.counter.sprechen .counter-bar-fill{background:var(--sprechen);}.counter.grammatik .counter-bar-fill{background:var(--grammatik);}.counter.reinforce .counter-bar-fill{background:var(--reinforce);}
+.counter-bar-fill.done{background:var(--green)!important;}
+.cbtn{width:26px;height:26px;border-radius:2px;border:1px solid var(--border2);background:var(--surface);color:var(--ink);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;font-family:monospace;line-height:1;}
+.cbtn:hover{background:var(--ink);color:var(--bg);border-color:var(--ink);}
+.cbtn:active{transform:scale(.9);}
+
+/* HISTORY */
+.history-toggle{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--muted);cursor:pointer;padding:6px 0;display:flex;align-items:center;gap:6px;border:none;background:none;transition:color .15s;}
+.history-toggle:hover{color:var(--ink);}
+.history-toggle .arrow{transition:transform .2s;}
+.history-toggle.open .arrow{transform:rotate(90deg);}
+.history-list{display:none;margin-top:8px;}
+.history-list.open{display:flex;flex-direction:column;gap:4px;}
+.history-section{margin-bottom:10px;}
+.history-section-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.history-item{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg);border:1px solid var(--border);border-radius:2px;font-size:11px;}
+.history-item-num{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;width:22px;text-align:center;}
+
+.history-item.schreiben .history-item-num{color:var(--schreiben);}.history-item.hören .history-item-num{color:var(--hören);}
+.history-item.schreiben .history-item-num{color:var(--schreiben);}.history-item.hören .history-item-num{color:var(--hören);}.history-item.sprechen .history-item-num{color:var(--sprechen);}.history-item.grammatik .history-item-num{color:var(--grammatik);}
+.history-item-time{font-family:'IBM Plex Mono',monospace;color:var(--blue);flex:1;font-size:11px;}
+.history-item-date{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);}
+.history-item.insight{border-color:rgba(184,134,11,.4);background:rgba(184,134,11,.04);}
+.history-item.insight .history-item-num{color:var(--gold);}
+.insight-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 8px;border-radius:2px;background:rgba(184,134,11,.1);color:var(--gold);border:1px solid rgba(184,134,11,.3);white-space:nowrap;}
+.btn-insight{background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:.3;filter:grayscale(1);transition:all .15s;}
+.btn-insight:hover{opacity:1;filter:grayscale(0);transform:scale(1.2);}
+.btn-insight.active{opacity:1;filter:grayscale(0);}
+.btn-wrong{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 7px;border-radius:2px;border:1px solid rgba(192,57,43,.3);background:transparent;color:rgba(192,57,43,.6);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn-wrong:hover{border-color:var(--accent);color:var(--accent);background:rgba(192,57,43,.06);}
+.history-item-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:11px;padding:2px 4px;transition:color .15s;}
+.history-item-del:hover{color:var(--accent);}
+
+/* REINFORCE */
+.reinforce-section{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+.reinforce-item{background:var(--bg);border:1px solid rgba(192,57,43,.2);border-radius:3px;padding:10px 14px;margin-bottom:6px;}
+.reinforce-item.solved{border-color:rgba(45,106,79,.25);background:rgba(45,106,79,.02);}
+.reinforce-item-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.reinforce-item-label{font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;flex:1;color:var(--ink);}
+.reinforce-item.solved .reinforce-item-label{color:var(--green);}
+.reinforce-item-from{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);}
+.reinforce-item-stats{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.reinforce-attempts{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);}
+.reinforce-item.solved .reinforce-attempts{color:var(--green);}
+.reinforce-time{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--blue);}
+.reinforce-date{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);}
+.solved-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 8px;border-radius:2px;background:rgba(45,106,79,.1);color:var(--green);border:1px solid rgba(45,106,79,.3);}
+.btn-reinforce-attempt{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:3px 10px;border-radius:2px;border:1px solid rgba(192,57,43,.3);background:rgba(192,57,43,.05);color:var(--accent);cursor:pointer;transition:all .15s;}
+.btn-reinforce-attempt:hover{background:rgba(192,57,43,.14);}
+.btn-solve{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:3px 10px;border-radius:2px;border:1px solid rgba(45,106,79,.3);background:rgba(45,106,79,.05);color:var(--green);cursor:pointer;transition:all .15s;}
+.btn-solve:hover{background:rgba(45,106,79,.14);}
+.btn-reinforce-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:11px;transition:color .15s;}
+.btn-reinforce-del:hover{color:var(--accent);}
+
+/* EMPTY */
+.empty{text-align:center;padding:56px 20px;color:var(--muted);border:1px dashed var(--border2);border-radius:3px;}
+.empty-icon{font-size:30px;margin-bottom:10px;opacity:.5;}
+.empty p{font-family:'IBM Plex Mono',monospace;font-size:12px;}
+.footer-actions{display:flex;justify-content:flex-end;margin-top:24px;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:1000;background:rgba(26,22,16,.75);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--surface);border:2px solid var(--ink);border-radius:3px;padding:36px;width:min(440px,92vw);position:relative;transform:translateY(8px);transition:transform .2s;box-shadow:5px 5px 0 var(--ink2);}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-type{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:4px;margin-bottom:8px;}
+.modal-type.schreiben{color:var(--schreiben);}
+.modal-type.hören{color:var(--hören);}.modal-type.schreiben{color:var(--schreiben);}.modal-type.hören{color:var(--hören);}.modal-type.sprechen{color:var(--sprechen);}.modal-type.grammatik{color:var(--grammatik);}.modal-type.reinforce{color:var(--accent);}
+.modal-concept{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--ink);margin-bottom:26px;line-height:1.2;}
+.modal-clock{font-family:'Playfair Display',serif;font-size:74px;font-weight:900;color:var(--ink);text-align:center;line-height:1;margin-bottom:8px;letter-spacing:-3px;}
+.modal-clock.idle{color:var(--muted);}
+.modal-clock.running{animation:clockPulse 1s ease-in-out infinite;}
+@keyframes clockPulse{0%,100%{opacity:1}50%{opacity:.55}}
+.modal-status{font-family:'IBM Plex Mono',monospace;text-align:center;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:26px;height:16px;}
+.modal-status.running{color:var(--blue);}
+#modal-note-wrap{display:none;margin-bottom:18px;}
+#modal-note-wrap label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);display:block;margin-bottom:6px;}
+#modal-note-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:3px;color:var(--ink);font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:9px 12px;outline:none;transition:border-color .2s;}
+#modal-note-input:focus{border-color:var(--ink);}
+.modal-btns{display:flex;gap:8px;flex-direction:column;}
+.modal-btn{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:2px;padding:13px;border-radius:2px;border:none;cursor:pointer;transition:all .15s;width:100%;}
+.modal-btn-start{background:var(--ink);color:var(--bg);}
+.modal-btn-start:hover{background:var(--ink2);}
+.modal-btn-pause{background:transparent;color:var(--blue);border:1px solid var(--blue);}
+.modal-btn-pause:hover{background:rgba(26,74,122,.07);}
+.modal-btn-stop{background:transparent;color:var(--accent);border:1px solid var(--accent);}
+.modal-btn-stop:hover{background:rgba(192,57,43,.06);}
+.modal-btn-cancel{background:transparent;color:var(--muted);border:1px solid var(--border2);font-size:10px;padding:10px;}
+.modal-btn-cancel:hover{color:var(--ink);border-color:var(--ink);}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;transition:color .15s;}
+.modal-close:hover{color:var(--ink);}
+
+/* SCHREIBEN MISTAKE COUNTER */
+#modal-mistakes-wrap{display:none;margin-bottom:22px;border:1px solid rgba(91,44,111,.25);border-radius:3px;background:rgba(91,44,111,.04);padding:14px 18px;}
+.mistakes-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--schreiben);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.mistakes-label::after{content:'';flex:1;height:1px;background:rgba(91,44,111,.2);}
+.mistakes-row{display:flex;align-items:center;justify-content:center;gap:16px;}
+.mistakes-num{font-family:'Playfair Display',serif;font-size:52px;font-weight:900;color:var(--schreiben);line-height:1;min-width:60px;text-align:center;}
+.mistakes-num.zero{color:var(--muted);}
+.mistake-btn{width:38px;height:38px;border-radius:2px;border:1px solid rgba(91,44,111,.35);background:rgba(91,44,111,.07);color:var(--schreiben);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;font-family:monospace;line-height:1;}
+.mistake-btn:hover{background:rgba(91,44,111,.18);border-color:var(--schreiben);}
+.mistake-btn:active{transform:scale(.9);}
+.mistake-btn.minus{color:var(--muted);border-color:var(--border2);background:transparent;}
+.mistake-btn.minus:hover{color:var(--accent);border-color:var(--accent);background:rgba(192,57,43,.06);}
+.mistakes-sub{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);text-align:center;margin-top:6px;}
+
+/* ══ WORTSCHATZ MNEMONICS SECTION ══ */
+.mnemo-section { margin-top: 56px; border-top: 2px solid var(--ink); padding-top: 36px; }
+.mnemo-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 24px; }
+.mnemo-title { font-family: 'Playfair Display', serif; font-size: clamp(28px,4vw,48px); font-weight: 900; color: var(--ink); line-height: .95; letter-spacing: -1px; }
+.mnemo-title em { color: var(--wortschatz); font-style: italic; }
+.mnemo-right { text-align: right; }
+.mnemo-total { font-family: 'Playfair Display', serif; font-size: 52px; font-weight: 900; color: var(--ink); line-height: 1; }
+.mnemo-total-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 3px; color: var(--muted); }
+.mnemo-memorized { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--wortschatz); margin-top: 3px; }
+
+/* mnemo stats bar */
+.mnemo-stats { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; margin-bottom: 24px; }
+.mnemo-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 12px 14px; position: relative; overflow: hidden; }
+.mnemo-stat::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.mnemo-stat.c1::before{background:var(--accent);} .mnemo-stat.c2::before{background:#C65D00;} .mnemo-stat.c3::before{background:var(--wortschatz);}
+.mnemo-stat.c4::before{background:var(--green);} .mnemo-stat.c5::before{background:#2D6A4F;}
+.mnemo-stat-label { font-family: 'IBM Plex Mono', monospace; font-size: 8px; letter-spacing: 1px; color: var(--muted); margin-bottom: 4px; }
+.mnemo-stat-num { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; line-height: 1; }
+.mnemo-stat.c1 .mnemo-stat-num{color:var(--accent);} .mnemo-stat.c2 .mnemo-stat-num{color:#C65D00;}
+.mnemo-stat.c3 .mnemo-stat-num{color:var(--wortschatz);} .mnemo-stat.c4 .mnemo-stat-num{color:var(--green);}
+.mnemo-stat.c5 .mnemo-stat-num{color:#2D6A4F;}
+
+/* ══ ADD WORD FORM — REDESIGNED ══ */
+.mnemo-add {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  margin-bottom: 28px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(26,22,16,.06);
+}
+.mnemo-add-inner { padding: 28px 28px 24px; }
+
+/* floating label fields */
+.mf-field {
+  position: relative;
+  margin-bottom: 20px;
+}
+.mf-label {
+  position: absolute; top: 12px; left: 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; letter-spacing: 2px; color: var(--muted);
+  transition: all .18s cubic-bezier(.4,0,.2,1);
+  pointer-events: none; z-index: 1;
+  transform-origin: left top;
+}
+.mf-field.has-value .mf-label,
+.mf-field:focus-within .mf-label {
+  transform: translateY(-10px) scale(.78);
+  color: var(--ink); letter-spacing: 1px;
+}
+.mf-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--ink);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 14px;
+  padding: 20px 14px 8px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  line-height: 1.4;
+}
+.mf-input:focus {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 2px rgba(26,22,16,.06);
+}
+.mf-textarea {
+  resize: none; min-height: 80px; line-height: 1.6;
+}
+.mf-input::placeholder { color: transparent; }
+
+/* two-col layout */
+.mf-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* divider */
+.mf-divider {
+  display: flex; align-items: center; gap: 14px;
+  margin: 4px 0 20px;
+}
+.mf-divider-line { flex: 1; height: 1px; background: var(--border); }
+.mf-divider-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; letter-spacing: 3px; color: var(--muted);
+  white-space: nowrap;
+}
+
+/* palace selector */
+.palace-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+.palace-row-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--muted); white-space: nowrap; }
+.palace-chip {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  padding: 4px 12px; border-radius: 2px; cursor: pointer;
+  border: 1px solid var(--border2); background: transparent;
+  color: var(--muted); transition: all .15s; letter-spacing: 1px;
+}
+.palace-chip:hover { border-color: var(--wortschatz); color: var(--wortschatz); }
+.palace-chip.active { background: var(--wortschatz); color: var(--bg); border-color: var(--wortschatz); }
+
+/* confidence selector */
+.conf-selector { margin-bottom: 24px; }
+.conf-selector-label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+  letter-spacing: 3px; color: var(--muted); margin-bottom: 10px;
+}
+.conf-btns { display: grid; grid-template-columns: repeat(5,1fr); gap: 6px; }
+.conf-chip {
+  padding: 12px 0; border-radius: 2px;
+  border: 1px solid var(--border2);
+  font-size: 18px; cursor: pointer;
+  transition: all .15s; background: transparent;
+  text-align: center; display: flex; flex-direction: column;
+  align-items: center; gap: 4px;
+}
+.conf-chip-label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 8px;
+  letter-spacing: 1px; color: var(--muted);
+}
+.conf-chip:hover { border-color: var(--border2); background: var(--surface2); }
+.conf-chip.active { border-color: transparent; }
+.conf-chip.active .conf-chip-label { color: var(--bg); }
+.conf-chip[data-v="1"].active { background: var(--accent); }
+.conf-chip[data-v="2"].active { background: #C65D00; }
+.conf-chip[data-v="3"].active { background: var(--wortschatz); }
+.conf-chip[data-v="4"].active { background: var(--green); }
+.conf-chip[data-v="5"].active { background: #2D6A4F; }
+
+/* form footer */
+.mnemo-add-footer {
+  border-top: 1px solid var(--border);
+  padding: 16px 28px;
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface2);
+}
+.btn-add-word {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  letter-spacing: 2px; padding: 12px 28px; border-radius: 2px;
+  border: none; background: var(--ink); color: var(--bg);
+  cursor: pointer; transition: all .15s;
+}
+.btn-add-word:hover { background: var(--ink2); }
+.btn-add-palace {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  letter-spacing: 1px; padding: 12px 18px; border-radius: 2px;
+  border: 1px solid var(--border2); background: transparent;
+  color: var(--muted); cursor: pointer; transition: all .15s;
+}
+.btn-add-palace:hover { border-color: var(--gold); color: var(--gold); }
+.form-edit-hint {
+  font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+  color: var(--wortschatz); letter-spacing: 1px; margin-left: auto;
+  display: none;
+}
+.form-edit-hint.visible { display: block; }
+
+/* word cards */
+.mnemo-words { display: flex; flex-direction: column; gap: 8px; }
+.mword-card { background: var(--surface); border: 1px solid var(--border); border-radius: 3px; overflow: hidden; animation: slideIn .2s ease; border-left: 3px solid var(--wortschatz); }
+.mword-hdr { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; }
+.mword-de { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--ink); flex: 1; }
+.mword-en { font-size: 11px; color: var(--muted); flex: 1; }
+.mword-conf { font-family: 'IBM Plex Mono', monospace; font-size: 9px; padding: 2px 8px; border-radius: 2px; flex-shrink: 0; }
+.mword-palace-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--gold); background: rgba(184,134,11,.08); border: 1px solid rgba(184,134,11,.2); padding: 1px 7px; border-radius: 2px; flex-shrink: 0; }
+.mword-body { display: none; padding: 10px 16px 14px; border-top: 1px solid var(--border); }
+.mword-body.open { display: block; }
+.mword-mnemonic { font-family: 'Playfair Display', serif; font-style: italic; font-size: 15px; line-height: 1.6; color: var(--ink); opacity: .85; margin-bottom: 10px; }
+.mword-mnemonic.empty { font-style: normal; font-size: 12px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+.mword-conf-picker { display: flex; gap: 4px; margin-bottom: 10px; }
+.mword-cpick { flex: 1; padding: 6px 0; border-radius: 2px; border: 1px solid var(--border2); font-size: 12px; cursor: pointer; transition: all .12s; background: transparent; color: var(--muted); text-align: center; }
+.mword-cpick.active { color: var(--bg); border-color: transparent; }
+.mword-cpick[data-v="1"].active{background:var(--accent);}   .mword-cpick[data-v="2"].active{background:#C65D00;}
+.mword-cpick[data-v="3"].active{background:var(--wortschatz);} .mword-cpick[data-v="4"].active{background:var(--green);}
+.mword-cpick[data-v="5"].active{background:#2D6A4F;}
+.mword-actions { display: flex; gap: 6px; }
+.mword-btn { flex: 1; padding: 7px; border-radius: 2px; border: 1px solid var(--border2); font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 1px; cursor: pointer; background: transparent; color: var(--muted); transition: all .12s; text-align: center; }
+.mword-btn:hover { border-color: var(--ink); color: var(--ink); }
+.mword-btn.del { color: var(--accent); border-color: rgba(192,57,43,.25); }
+.mword-btn.del.confirm { background: rgba(192,57,43,.1); border-color: var(--accent); }
+.mnemo-empty { text-align: center; padding: 40px 20px; color: var(--muted); border: 1px dashed var(--border2); border-radius: 3px; }
+.mnemo-empty p { font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+.mnemo-search-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.mnemo-filter-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.mnemo-fbtn { font-family: 'IBM Plex Mono', monospace; font-size: 9px; padding: 3px 10px; border-radius: 20px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; transition: all .12s; white-space: nowrap; }
+.mnemo-fbtn.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.mnemo-fbtn.cf.active { color: var(--bg); border-color: transparent; }
+.mnemo-fbtn.cf[data-v="1"].active{background:var(--accent);}   .mnemo-fbtn.cf[data-v="2"].active{background:#C65D00;}
+.mnemo-fbtn.cf[data-v="3"].active{background:var(--wortschatz);} .mnemo-fbtn.cf[data-v="4"].active{background:var(--green);}
+.mnemo-fbtn.cf[data-v="5"].active{background:#2D6A4F;}
+.mnemo-anki-btn { font-family: 'IBM Plex Mono', monospace; font-size: 10px; padding: 7px 16px; border-radius: 2px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; transition: all .15s; letter-spacing: 1px; }
+.mnemo-anki-btn:hover { border-color: var(--ink); color: var(--ink); }
+.mnemo-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; flex-wrap: wrap; gap: 8px; }
+
+/* ── MNEMO STOPWATCH ── */
+.mn-sw-wrap { margin: 10px 0 10px; padding: 12px 0 0; border-top: 1px solid var(--border); }
+.mn-sw-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 3px; color: var(--muted); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.mn-sw-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.mn-sw-clock { font-family: 'Playfair Display', serif; font-size: 52px; font-weight: 900; text-align: center; letter-spacing: -2px; line-height: 1; padding: 6px 0 4px; color: var(--muted); transition: color .2s; }
+.mn-sw-clock.running { color: var(--ink); animation: swBeat 1s ease-in-out infinite; }
+@keyframes swBeat { 0%,100%{opacity:1} 50%{opacity:.45} }
+.mn-sw-status { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--muted); text-align: center; height: 14px; margin-bottom: 10px; }
+.mn-sw-status.running { color: var(--blue); }
+.mn-sw-btns { display: flex; gap: 6px; margin-bottom: 8px; }
+.mn-sw-btn { flex: 1; padding: 9px; border-radius: 2px; border: 1px solid var(--border2); font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 1px; cursor: pointer; background: transparent; color: var(--muted); transition: all .15s; text-align: center; }
+.mn-sw-btn:hover { border-color: var(--ink); color: var(--ink); }
+.mn-sw-btn.start { color: var(--blue); border-color: rgba(26,74,122,.35); background: rgba(26,74,122,.05); }
+.mn-sw-btn.pause { color: var(--gold); border-color: rgba(184,134,11,.35); background: rgba(184,134,11,.05); }
+.mn-sw-btn.save  { color: var(--green); border-color: rgba(45,106,79,.35); background: rgba(45,106,79,.05); }
+.mn-sw-btn.disc  { color: var(--muted); font-size: 9px; }
+.mn-sw-sessions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.mn-sw-session  { font-family: 'IBM Plex Mono', monospace; font-size: 9px; background: var(--bg); border: 1px solid var(--border); border-radius: 2px; padding: 2px 7px; color: var(--muted); }
+.mword-time-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--blue); background: rgba(26,74,122,.08); border: 1px solid rgba(26,74,122,.2); padding: 1px 7px; border-radius: 2px; flex-shrink: 0; }
+
+/* ══ NAVIGATION ══ */
+.nav-bar {
+  position: sticky; top: 0; z-index: 200;
+  background: var(--bg); border-bottom: 1px solid var(--border);
+  display: flex; align-items: stretch;
+  margin: 0 -28px; padding: 0 28px;
+}
+.nav-bar::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background-image: repeating-linear-gradient(0deg,transparent,transparent 27px,rgba(180,168,140,.18) 27px,rgba(180,168,140,.18) 28px);
+  opacity: .4;
+}
+.nav-tab {
+  position: relative; z-index: 1;
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 3px;
+  padding: 18px 28px 16px; border: none; background: transparent;
+  color: var(--muted); cursor: pointer; transition: color .2s;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  display: flex; align-items: center; gap: 8px;
+}
+.nav-tab:hover { color: var(--ink); }
+.nav-tab.active { color: var(--ink); border-bottom-color: var(--ink); }
+.nav-tab.active.wortschatz-tab { color: var(--wortschatz); border-bottom-color: var(--wortschatz); }
+.nav-tab-count {
+  font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; line-height: 1;
+}
+.nav-tab.active .nav-tab-count { color: inherit; }
+.nav-spacer { flex: 1; }
+.nav-brand {
+  position: relative; z-index: 1;
+  font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 4px;
+  color: var(--muted); display: flex; align-items: center; padding: 0 0 0 4px;
+}
+.nav-brand span { color: var(--accent); margin-right: 6px; }
+
+/* Screen transitions */
+.screen { display: none; animation: screenIn .2s ease; }
+.screen.active { display: block; }
+@keyframes screenIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+
+/* Header simplified — no redundant subtitle since nav handles it */
+header { padding: 40px 0 28px; }
+
+
+.reinforce-label-input {
+  flex:1; background:var(--bg); border:1px solid var(--ink);
+  border-radius:2px; color:var(--ink); font-family:'IBM Plex Sans',sans-serif;
+  font-size:13px; font-weight:600; padding:4px 8px; outline:none;
+  transition:border-color .15s; min-width:0;
+}
+.reinforce-item-label { cursor:pointer; flex:1; transition:color .15s; }
+.reinforce-item-label:hover { color:var(--gold); }
+
+/* ══ RANGLISTE — REDESIGNED ══ */
+.nav-tab.rangliste-tab.active { color:var(--gold); border-bottom-color:var(--gold); }
+
+/* Header */
+.rl-header { padding:48px 0 32px; margin-bottom:36px; position:relative; border-bottom:none; }
+.rl-header::after { content:''; position:absolute; bottom:0; left:0; right:0; height:1px; background:linear-gradient(90deg, var(--ink) 0%, var(--ink) 55%, transparent 100%); }
+.rl-header h1 em { color:var(--gold); font-style:italic; }
+.rl-header-right { position:absolute; top:48px; right:0; text-align:right; }
+.rl-total { font-family:'Playfair Display',serif; font-size:72px; font-weight:900; color:var(--ink); line-height:1; letter-spacing:-3px; }
+.rl-total-label { font-family:'IBM Plex Mono',monospace; font-size:8px; letter-spacing:4px; color:var(--muted); margin-top:4px; }
+.rl-updated { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--blue); margin-top:6px; }
+
+/* Auto-join notice */
+.rl-setup { background:rgba(45,106,79,.04); border:1px solid rgba(45,106,79,.2); border-left:3px solid var(--green); border-radius:2px; padding:16px 20px; margin-bottom:24px; position:relative; overflow:hidden; }
+.rl-setup::before { display:none; }
+.rl-hint { background:transparent; border:none; padding:0; margin-bottom:0; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--green); line-height:1.9; }
+.rl-hint a { color:var(--blue); }
+.rl-hint strong { font-weight:600; }
+
+/* Config / status */
+.rl-config-row { display:flex; gap:8px; align-items:flex-end; margin-bottom:10px; }
+.rl-config-row .input-group { flex:1; }
+.rl-config-row .input-group.short { max-width:190px; }
+.rl-input-label { font-family:'IBM Plex Mono',monospace; font-size:8px; letter-spacing:2px; color:var(--muted); margin-bottom:4px; }
+.rl-status { font-family:'IBM Plex Mono',monospace; font-size:10px; padding:10px 16px; border-radius:2px; margin-bottom:16px; display:none; }
+.rl-status.ok  { background:rgba(45,106,79,.06); border-left:3px solid var(--green); color:var(--green); display:block; }
+.rl-status.err { background:rgba(192,57,43,.06); border-left:3px solid var(--accent); color:var(--accent); display:block; }
+.rl-status.loading { background:rgba(26,74,122,.06); border-left:3px solid var(--blue); color:var(--blue); display:block; }
+
+/* My Entry panel */
+.rl-entry-panel { background:var(--surface); border:1px solid var(--border); border-radius:2px; padding:18px 22px; margin-bottom:32px; position:relative; overflow:hidden; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+.rl-entry-panel .section-label { display:none; }
+.rl-btn-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.rl-autosync-badge { display:inline-flex; align-items:center; gap:8px; font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:2px; color:var(--muted); padding:8px 14px; border:1px solid var(--border); border-radius:2px; background:var(--bg); }
+.rl-sync-dot { width:7px; height:7px; border-radius:50%; background:var(--border2); flex-shrink:0; transition:background .3s; }
+.rl-sync-dot.ok { background:var(--green); box-shadow:0 0 0 3px rgba(45,106,79,.15); }
+.rl-sync-dot.syncing { background:var(--blue); animation:syncPulse .8s ease-in-out infinite; }
+.rl-sync-dot.err { background:var(--accent); }
+@keyframes syncPulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* Board header */
+.rl-board-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px; padding-bottom:14px; border-bottom:1px solid var(--border); }
+.rl-sort-row { display:flex; gap:10px; align-items:center; }
+.rl-sort-select-wrap { position:relative; display:inline-flex; align-items:center; }
+.rl-sort-select { font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:2px; padding:7px 32px 7px 14px; border-radius:2px; border:1px solid var(--border2); background:var(--ink); color:var(--bg); cursor:pointer; appearance:none; -webkit-appearance:none; outline:none; transition:background .15s; }
+.rl-sort-select:hover { background:var(--ink2); }
+.rl-sort-select option { background:var(--surface); color:var(--ink); }
+.rl-sort-arrow { position:absolute; right:10px; pointer-events:none; color:var(--bg); font-size:10px; line-height:1; }
+
+/* Empty / spinner */
+.rl-empty { text-align:center; padding:64px 20px; color:var(--muted); border:1px dashed var(--border2); border-radius:3px; }
+.rl-empty-icon { font-size:36px; margin-bottom:14px; opacity:.4; }
+.rl-empty p { font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:2; }
+.rl-spinner { display:inline-block; width:11px; height:11px; border:2px solid var(--border); border-top-color:var(--blue); border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; margin-right:5px; }
+@keyframes spin { to { transform:rotate(360deg) } }
+
+/* Preview cards */
+.rl-preview-card { background:var(--bg); border:1px solid var(--border); border-radius:3px; padding:10px 13px; position:relative; overflow:hidden; }
+.rl-preview-card::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; }
+.rl-preview-card.s::after{background:var(--schreiben);} .rl-preview-card.h::after{background:var(--hören);}
+.rl-preview-card.sp::after{background:var(--sprechen);} .rl-preview-card.g::after{background:var(--grammatik);}
+.rl-preview-card.w::after{background:var(--wortschatz);} .rl-preview-card.rein::after{background:var(--accent);}
+.rl-preview-label { font-family:'IBM Plex Mono',monospace; font-size:8px; letter-spacing:1px; color:var(--muted); margin-bottom:3px; }
+.rl-preview-num { font-family:'Playfair Display',serif; font-size:24px; font-weight:700; line-height:1; }
+.rl-preview-card.s .rl-preview-num{color:var(--schreiben);} .rl-preview-card.h .rl-preview-num{color:var(--hören);}
+.rl-preview-card.sp .rl-preview-num{color:var(--sprechen);} .rl-preview-card.g .rl-preview-num{color:var(--grammatik);}
+.rl-preview-card.w .rl-preview-num{color:var(--wortschatz);} .rl-preview-card.rein .rl-preview-num{color:var(--accent);}
+.rl-preview-sub { font-family:'IBM Plex Mono',monospace; font-size:8px; color:var(--muted); margin-top:2px; }
+
+/* ══ LEADERBOARD TABLE ══ */
+.rl-table-wrap { width:100%; }
+.rl-list-header { display:none; }
+
+/* Unified bordered table — no gaps between rows */
+.rl-player-list { display:flex; flex-direction:column; border:1px solid var(--border); border-radius:3px; overflow:hidden; }
+
+.rl-row { background:var(--surface); border-bottom:1px solid var(--border); position:relative; transition:background .15s; animation:slideIn .25s ease; }
+.rl-row:last-child { border-bottom:none; }
+
+/* Gold/silver/bronze accent on the left edge via inline border-left set in JS */
+.rl-row.r1 { border-left:3px solid var(--gold);   background:linear-gradient(90deg,rgba(184,134,11,.06) 0%,transparent 35%); }
+.rl-row.r2 { border-left:3px solid #A8A8A8;        background:linear-gradient(90deg,rgba(158,158,158,.04) 0%,transparent 35%); }
+.rl-row.r3 { border-left:3px solid var(--orange);  background:linear-gradient(90deg,rgba(198,93,0,.04) 0%,transparent 35%); }
+.rl-row.rn { border-left:3px solid var(--border2); }
+.rl-row.is-you { border-left-color:var(--accent) !important; background:linear-gradient(90deg,rgba(192,57,43,.05) 0%,transparent 35%) !important; }
+.rl-row:hover { background:var(--surface2); }
+.rl-row.r1:hover { background:linear-gradient(90deg,rgba(184,134,11,.1) 0%,rgba(184,134,11,.02) 50%); }
+
+.rl-row-inner { display:grid; grid-template-columns:68px 1fr auto; align-items:center; padding:14px 20px 14px 22px; }
+
+/* Rank badge — sharp rectangle, no circle */
+.rl-row-rank {
+  display:flex; align-items:center; justify-content:center;
+  width:42px; height:42px; border-radius:2px; flex-shrink:0;
+  font-family:'Playfair Display',serif; font-weight:900; line-height:1;
+  background:var(--bg); border:1px solid var(--border);
+}
+.rl-row.r1 .rl-row-rank { font-size:26px; background:rgba(184,134,11,.1); border-color:rgba(184,134,11,.35); color:var(--gold); width:46px; height:46px; }
+.rl-row.r2 .rl-row-rank { font-size:24px; background:rgba(158,158,158,.08); border-color:rgba(158,158,158,.25); color:#9E9E9E; width:44px; height:44px; }
+.rl-row.r3 .rl-row-rank { font-size:24px; background:rgba(198,93,0,.08); border-color:rgba(198,93,0,.25); color:var(--orange); width:44px; height:44px; }
+.rl-row.rn .rl-row-rank { font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--muted); }
+
+/* Name col */
+.rl-row-name-col { padding:0 18px; min-width:0; }
+.rl-row-name { font-family:'Playfair Display',serif; font-size:19px; font-weight:700; color:var(--ink); cursor:pointer; display:inline-flex; align-items:center; gap:8px; transition:color .15s; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:260px; border:none; background:none; padding:0; }
+.rl-row-name:hover { color:var(--gold); }
+.rl-you-badge { font-family:'IBM Plex Mono',monospace; font-size:7px; padding:2px 7px; border-radius:2px; background:rgba(192,57,43,.08); color:var(--accent); border:1px solid rgba(192,57,43,.25); letter-spacing:1px; flex-shrink:0; }
+.rl-row-date { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--muted); margin-top:3px; }
+
+/* KPI columns — divided by vertical lines */
+.rl-row-kpis { display:flex; align-items:stretch; flex-shrink:0; border-left:1px solid var(--border); }
+.rl-row-kpi { text-align:center; min-width:64px; padding:4px 16px; border-right:1px solid var(--border); }
+.rl-row-kpi:last-of-type { border-right:none; }
+.rl-row-kpi-num { font-family:'Playfair Display',serif; font-size:22px; font-weight:900; line-height:1; color:var(--ink); }
+.rl-row-kpi-lbl { font-family:'IBM Plex Mono',monospace; font-size:7px; letter-spacing:1px; color:var(--muted); margin-top:3px; }
+.rl-row-kpi.words .rl-row-kpi-num { color:var(--wortschatz); }
+.rl-row-kpi.hours .rl-row-kpi-num { color:var(--blue); }
+.rl-row-kpi-divider { display:none; }
+
+/* Skill bars strip */
+.rl-row-bars { display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--border); padding:9px 22px; background:rgba(0,0,0,.012); }
+.rl-row-bar-item { display:flex; flex-direction:column; gap:4px; padding:0 8px; border-left:1px solid var(--border); }
+.rl-row-bar-item:first-child { border-left:none; padding-left:0; }
+.rl-row-bar-lbl { font-family:'IBM Plex Mono',monospace; font-size:7px; letter-spacing:1px; color:var(--muted); }
+.rl-row-bar-track { height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+.rl-row-bar-fill { height:100%; border-radius:2px; transition:width .6s ease; }
+.rl-row-bar-val { font-family:'IBM Plex Mono',monospace; font-size:9px; font-weight:500; }
+
+/* ── PLAYER DETAIL MODAL — REDESIGNED ── */
+.rl-detail-overlay { position:fixed; inset:0; z-index:2000; background:rgba(26,22,16,.85); backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .22s; }
+.rl-detail-overlay.open { opacity:1; pointer-events:all; }
+.rl-detail-modal { background:var(--surface); border:1px solid var(--border); border-radius:3px; width:min(600px,94vw); max-height:88vh; overflow-y:auto; position:relative; transform:translateY(16px) scale(.98); transition:transform .28s cubic-bezier(.16,1,.3,1); box-shadow:0 0 0 1px rgba(26,22,16,.06), 0 40px 100px rgba(26,22,16,.25); }
+.rl-detail-overlay.open .rl-detail-modal { transform:translateY(0) scale(1); }
+.rl-detail-header { padding:32px 36px 26px; border-bottom:1px solid var(--border); position:relative; background:linear-gradient(135deg,rgba(184,134,11,.05) 0%,transparent 55%); }
+.rl-detail-close { position:absolute; top:14px; right:14px; background:none; border:1px solid transparent; border-radius:2px; font-size:14px; cursor:pointer; color:var(--muted); transition:all .15s; width:28px; height:28px; display:flex; align-items:center; justify-content:center; }
+.rl-detail-close:hover { color:var(--ink); border-color:var(--border); background:var(--surface2); }
+.rl-detail-rank-badge { font-family:'IBM Plex Mono',monospace; font-size:8px; letter-spacing:4px; color:var(--muted); margin-bottom:10px; text-transform:uppercase; }
+.rl-detail-name { font-family:'Playfair Display',serif; font-size:40px; font-weight:900; color:var(--ink); line-height:.93; letter-spacing:-1.5px; }
+.rl-detail-date { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--muted); margin-top:10px; }
+.rl-detail-body { padding:28px 36px 36px; }
+
+/* KPI row — unified container */
+.rl-detail-kpi-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:0; margin-bottom:28px; border:1px solid var(--border); border-radius:2px; overflow:hidden; }
+.rl-detail-kpi { background:var(--bg); border-right:1px solid var(--border); padding:20px 16px; text-align:center; }
+.rl-detail-kpi:last-child { border-right:none; }
+.rl-detail-kpi-num { font-family:'Playfair Display',serif; font-size:36px; font-weight:900; line-height:1; }
+.rl-detail-kpi-lbl { font-family:'IBM Plex Mono',monospace; font-size:7px; letter-spacing:3px; color:var(--muted); margin-top:6px; text-transform:uppercase; }
+
+/* Skill bars */
+.rl-detail-bars { display:flex; flex-direction:column; gap:14px; margin-bottom:24px; }
+.rl-detail-bar-row { display:grid; grid-template-columns:96px 1fr 46px; align-items:center; gap:14px; }
+.rl-detail-bar-lbl { font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:1px; color:var(--muted); }
+.rl-detail-bar-track { height:4px; background:var(--border); border-radius:2px; overflow:hidden; }
+.rl-detail-bar-fill { height:100%; border-radius:2px; transition:width .7s cubic-bezier(.16,1,.3,1); }
+.rl-detail-bar-val { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; text-align:right; }
+
+/* ── CHALLENGES ── */
+.rl-challenges-wrap { margin-top:36px; }
+.rl-challenge-form { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:2px; padding:20px 24px; margin-bottom:16px; position:relative; overflow:hidden; }
+.rl-challenge-form::before { display:none; }
+.rl-challenge-list { display:flex; flex-direction:column; border:1px solid var(--border); border-radius:2px; overflow:hidden; }
+.rl-challenge-card { background:var(--surface); border-bottom:1px solid var(--border); padding:14px 18px 14px 22px; display:grid; grid-template-columns:1fr auto; gap:12px; align-items:center; position:relative; animation:slideIn .2s ease; }
+.rl-challenge-card:last-child { border-bottom:none; }
+.rl-challenge-card::before { content:''; position:absolute; top:0; left:0; bottom:0; width:3px; }
+.rl-challenge-card.open::before { background:var(--accent); }
+.rl-challenge-card.won::before  { background:var(--gold); }
+.rl-challenge-card.lost::before { background:var(--muted); }
+.rl-challenge-title { font-family:'Playfair Display',serif; font-size:16px; font-weight:700; color:var(--ink); margin-bottom:3px; }
+.rl-challenge-meta { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--muted); }
+.rl-challenge-meta strong { color:var(--accent); }
+.rl-challenge-progress { margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.rl-ch-prog-side { background:var(--bg); border:1px solid var(--border); border-radius:2px; padding:8px 12px; }
+.rl-ch-prog-name { font-family:'IBM Plex Mono',monospace; font-size:8px; letter-spacing:1px; color:var(--muted); margin-bottom:3px; }
+.rl-ch-prog-val { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:var(--ink); }
+.rl-ch-prog-val.leading { color:var(--gold); }
+.rl-ch-prog-bar-track { height:3px; background:var(--border); border-radius:2px; overflow:hidden; margin-top:4px; }
+.rl-ch-prog-bar-fill { height:100%; background:var(--accent); border-radius:2px; transition:width .5s; }
+.rl-ch-prog-bar-fill.you { background:var(--gold); }
+.rl-challenge-status-badge { font-family:'IBM Plex Mono',monospace; font-size:8px; padding:3px 10px; border-radius:2px; letter-spacing:2px; white-space:nowrap; }
+.rl-challenge-status-badge.open { background:rgba(192,57,43,.07); color:var(--accent); border:1px solid rgba(192,57,43,.2); }
+.rl-challenge-status-badge.won  { background:rgba(184,134,11,.1); color:var(--gold); border:1px solid rgba(184,134,11,.3); }
+.rl-challenge-status-badge.lost { background:rgba(140,128,112,.08); color:var(--muted); border:1px solid var(--border2); }
+.rl-ch-del { background:none; border:none; cursor:pointer; color:var(--muted); font-size:12px; padding:2px 5px; transition:color .15s; }
+.rl-ch-del:hover { color:var(--accent); }
+.rl-ch-type-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+.rl-ch-type-pill { font-family:'IBM Plex Mono',monospace; font-size:9px; padding:4px 12px; border-radius:2px; border:1px solid var(--border2); background:transparent; color:var(--muted); cursor:pointer; transition:all .12s; }
+.rl-ch-type-pill:hover { border-color:var(--ink); color:var(--ink); }
+.rl-ch-type-pill.active { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+
+/* ══════════════════════════════════════
+   MOBILE RESPONSIVE — max-width: 640px
+   Desktop layout is fully preserved
+   ══════════════════════════════════════ */
+@media (max-width: 640px) {
+
+  /* WRAP */
+  .wrap { padding: 0 16px 80px; }
+
+  /* HEADER */
+  header { padding: 28px 0 20px; }
+  h1 { font-size: clamp(36px, 11vw, 56px); letter-spacing: -1px; }
+  .header-right { position: static; text-align: left; margin-top: 14px; display: flex; align-items: baseline; gap: 12px; }
+  .header-total { font-size: 42px; }
+  .header-total-label { font-size: 8px; }
+
+  /* NAV */
+  .nav-bar { padding: 0 16px; gap: 0; overflow-x: auto; }
+  .nav-tab { padding: 14px 16px 12px; font-size: 9px; letter-spacing: 2px; white-space: nowrap; }
+  .nav-brand { display: none; }
+  .nav-spacer { display: none; }
+
+  /* STATS BAR — 2 columns on mobile */
+  .stats-bar { grid-template-columns: 1fr 1fr; }
+
+  /* TOOLBAR & ADD */
+  .add-grid { grid-template-columns: 1fr; }
+  .add-grid .btn { width: 100%; }
+
+  /* TOPIC CARDS */
+  .topic-header { flex-wrap: wrap; }
+  .topic-right { width: 100%; justify-content: flex-end; padding-top: 8px; border-top: 1px solid var(--border); margin-top: 4px; }
+
+  /* COUNTERS — 3 columns on mobile */
+  .counters { grid-template-columns: repeat(3, 1fr); }
+
+  /* WORTSCHATZ HEADER */
+  .mnemo-header { flex-wrap: wrap; gap: 12px; }
+  .mnemo-right { text-align: left; }
+  .mnemo-total { font-size: 36px; }
+
+  /* MNEMO STATS — 3 cols */
+  .mnemo-stats { grid-template-columns: repeat(3, 1fr); }
+
+  /* ADD WORD FORM */
+  .mf-row-2 { grid-template-columns: 1fr; }
+  .conf-btns { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+  .conf-chip { padding: 8px 0; font-size: 15px; }
+  .mnemo-add-inner { padding: 18px 16px 16px; }
+  .mnemo-add-footer { padding: 12px 16px; flex-wrap: wrap; }
+  .btn-add-word { width: 100%; text-align: center; }
+
+  /* RANGLISTE HEADER */
+  .rl-header { padding: 28px 0 20px; }
+  .rl-header-right { position: static; text-align: left; margin-top: 14px; display: flex; align-items: baseline; gap: 12px; }
+  .rl-total { font-size: 48px; letter-spacing: -2px; }
+
+  /* SETUP PANEL */
+  .rl-config-row { flex-direction: column; align-items: stretch; }
+  .rl-config-row .input-group.short { max-width: 100%; }
+  .rl-config-row .btn { width: 100%; }
+
+  /* MY ENTRY */
+  .rl-entry-panel { padding: 16px 14px; flex-direction: column; align-items: flex-start; }
+  .rl-autosync-badge { width: 100%; justify-content: center; }
+
+  /* BOARD HEADER */
+  .rl-board-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .rl-sort-row { width: 100%; }
+  .rl-sort-select-wrap { width: 100%; }
+  .rl-sort-select { width: 100%; }
+
+  /* LEADERBOARD ROWS */
+  .rl-row-inner { grid-template-columns: 56px 1fr; padding: 12px 14px 12px 18px; }
+  .rl-row-kpis { display: none; }
+  .rl-row-name { font-size: 16px; max-width: 100%; }
+  .rl-row-bars { padding: 8px 18px; }
+
+  /* CHALLENGE FORM */
+  .rl-challenge-form { padding: 16px; }
+  .rl-challenge-form > div[style*="grid"] { grid-template-columns: 1fr !important; }
+  .rl-ch-type-row { gap: 4px; }
+  .rl-ch-type-pill { font-size: 8px; padding: 4px 8px; }
+  .rl-challenge-card { grid-template-columns: 1fr; }
+  .rl-challenge-card > div:last-child { display: flex; flex-direction: row; justify-content: space-between; align-items: center; }
+  .rl-challenge-progress { grid-template-columns: 1fr; }
+
+  /* PLAYER DETAIL MODAL */
+  .rl-detail-modal { width: 96vw; }
+  .rl-detail-header { padding: 20px 18px 16px; }
+  .rl-detail-body { padding: 16px 18px 24px; }
+  .rl-detail-kpi-row { grid-template-columns: 1fr 1fr; }
+  .rl-detail-name { font-size: 28px; }
+
+  /* MODAL */
+  .modal { padding: 24px 20px; }
+  .modal-clock { font-size: 56px; }
+
+  /* HISTORY */
+  .history-item { flex-wrap: wrap; gap: 6px; }
+
+  /* SECTION LABELS */
+  .section-label { font-size: 8px; }
+}
+
+/* SMALL MOBILE — max-width: 380px */
+@media (max-width: 380px) {
+  .nav-tab { padding: 12px 10px; font-size: 8px; letter-spacing: 1px; }
+  .stats-bar { grid-template-columns: 1fr; }
+  .counters { grid-template-columns: repeat(2, 1fr); }
+  .mnemo-stats { grid-template-columns: repeat(2, 1fr); }
+  h1 { font-size: 32px; }
+}
+
+/* ══ AUTH SCREEN ══ */
+#auth-screen {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+#auth-screen::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none;
+  background-image: repeating-linear-gradient(0deg,transparent,transparent 27px,rgba(180,168,140,.18) 27px,rgba(180,168,140,.18) 28px);
+  opacity: .4;
+}
+.auth-card {
+  position: relative; z-index: 1;
+  background: var(--surface); border: 2px solid var(--ink);
+  border-radius: 3px; padding: 48px 44px;
+  width: min(440px, 100%);
+  box-shadow: 6px 6px 0 var(--ink2);
+  animation: slideIn .3s ease;
+}
+.auth-eyebrow {
+  font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+  letter-spacing: 4px; color: var(--accent); margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.auth-eyebrow::before { content: '§'; font-size: 13px; }
+.auth-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(32px, 6vw, 52px); font-weight: 900;
+  color: var(--ink); line-height: .92; letter-spacing: -2px;
+  margin-bottom: 32px;
+}
+.auth-title em { color: var(--accent); font-style: italic; }
+.auth-divider {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
+}
+.auth-divider-line { flex: 1; height: 1px; background: var(--border); }
+.auth-divider-label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+  letter-spacing: 2px; color: var(--muted);
+}
+.auth-google-btn {
+  width: 100%; padding: 14px 20px;
+  background: var(--ink); color: var(--bg);
+  border: none; border-radius: 3px; cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  letter-spacing: 2px; display: flex; align-items: center;
+  justify-content: center; gap: 12px; transition: background .15s;
+  margin-bottom: 16px;
+}
+.auth-google-btn:hover { background: var(--ink2); }
+.auth-google-btn svg { flex-shrink: 0; }
+.auth-note {
+  font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+  color: var(--muted); text-align: center; line-height: 1.7;
+  margin-top: 20px;
+}
+.auth-error {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  color: var(--accent); background: rgba(192,57,43,.07);
+  border: 1px solid rgba(192,57,43,.25); border-radius: 3px;
+  padding: 10px 14px; margin-bottom: 16px; display: none;
+}
+
+/* ══ USER BADGE in nav ══ */
+.nav-user {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 4px 0 12px; border-left: 1px solid var(--border);
+  margin-left: 4px;
+}
+.nav-user-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  object-fit: cover; border: 1px solid var(--border2);
+}
+.nav-user-avatar-placeholder {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--ink); color: var(--bg);
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border2);
+}
+.nav-signout {
+  font-family: 'IBM Plex Mono', monospace; font-size: 8px;
+  letter-spacing: 1px; color: var(--muted); background: none;
+  border: 1px solid var(--border); border-radius: 2px;
+  padding: 3px 8px; cursor: pointer; transition: all .15s;
+}
+.nav-signout:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ══ SYNC STATUS in nav ══ */
+.nav-sync {
+  position: relative; z-index: 1;
+  font-family: 'IBM Plex Mono', monospace; font-size: 8px;
+  letter-spacing: 1px; color: var(--muted);
+  display: flex; align-items: center; gap: 5px; padding: 0 8px;
+}
+.nav-sync-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--border2); flex-shrink: 0; transition: background .3s;
+}
+.nav-sync-dot.ok { background: var(--green); }
+.nav-sync-dot.syncing { background: var(--blue); animation: syncPulse .8s ease-in-out infinite; }
+.nav-sync-dot.err { background: var(--accent); }
+
+</style>
+</head>
+<body>
+<!-- ══ AUTH SCREEN ══ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-eyebrow">DEUTSCH B1 / B2</div>
+    <div class="auth-title">ÜBUNGS<br><em>TRACKER</em></div>
+    <div id="auth-error" class="auth-error"></div>
+    <button class="auth-google-btn" onclick="authSignInGoogle()">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#fff" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#ccc" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#aaa" d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z"/><path fill="#eee" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z"/></svg>
+      MIT GOOGLE ANMELDEN
+    </button>
+    <div class="auth-note">
+      Deine Daten werden sicher in der Cloud gespeichert.<br>
+      Zugang von jedem Gerät mit deinem Google-Konto.
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ══ NAV BAR ══ -->
+  <nav class="nav-bar">
+    <div class="nav-brand"><span>§</span> DEUTSCH B1/B2</div>
+    <div class="nav-spacer"></div>
+    <button class="nav-tab active" id="nav-übungen" onclick="switchScreen('übungen')">
+      ÜBUNGEN <span class="nav-tab-count" id="nav-count-übungen">0</span>
+    </button>
+    <button class="nav-tab wortschatz-tab" id="nav-wortschatz" onclick="switchScreen('wortschatz')">
+      WORTSCHATZ <span class="nav-tab-count" id="nav-count-wortschatz">0</span>
+    </button>
+    <button class="nav-tab rangliste-tab" id="nav-rangliste" onclick="switchScreen('rangliste')">
+      RANGLISTE <span class="nav-tab-count" id="nav-count-rangliste"></span>
+    </button>
+    <div class="nav-sync" id="nav-sync" style="display:none">
+      <span class="nav-sync-dot" id="nav-sync-dot"></span>
+      <span id="nav-sync-label">SYNC</span>
+    </div>
+    <div class="nav-user" id="nav-user" style="display:none">
+      <div class="nav-user-avatar-placeholder" id="nav-user-avatar">?</div>
+      <button class="nav-signout" onclick="authSignOut()">ABMELDEN</button>
+    </div>
+  </nav>
+
+  <!-- ══ SCREEN: ÜBUNGEN ══ -->
+  <div class="screen active" id="screen-übungen">
+  <header>
+    <div class="eyebrow">DEUTSCH GRAMMATIK — B1 / B2</div>
+    <h1>ÜBUNGS<br><em>TRACKER</em></h1>
+    <div class="header-sub">Chronometer · Verlauf · Wiederholung · Tags</div>
+    <div class="header-right">
+      <div style="display:flex;flex-direction:row;align-items:flex-start;gap:28px;">
+        <div style="text-align:right;">
+          <div id="total-reinforce" class="header-total" style="color:var(--accent)">0</div>
+          <div class="header-total-label">WIEDERHOLUNGEN</div>
+          <div id="total-reinforce-time" class="header-time" style="color:var(--accent)">00h 00m 00s</div>
+        </div>
+        <div style="text-align:right;">
+          <div id="total-done" class="header-total">0</div>
+          <div class="header-total-label">ÜBUNGEN GESAMT</div>
+          <div id="total-time" class="header-time">00h 00m 00s Gesamtzeit</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="stats-bar">
+    <div class="stat-card schreiben"><div class="stat-label">SCHREIBEN</div><div class="stat-num" id="g-schreiben">0</div><div class="stat-sub">Ziel: 5–10</div><div class="stat-bar"><div class="stat-bar-fill" id="gb-schreiben" style="width:0%"></div></div></div>
+    <div class="stat-card hören"><div class="stat-label">HÖREN/LESEN</div><div class="stat-num" id="g-hören">0</div><div class="stat-sub">Ziel: 8–12</div><div class="stat-bar"><div class="stat-bar-fill" id="gb-hören" style="width:0%"></div></div></div>
+    <div class="stat-card sprechen"><div class="stat-label">SPRECHEN</div><div class="stat-num" id="g-sprechen">0</div><div class="stat-sub" id="g-sprechen-sub">0h 00m</div><div class="stat-bar"><div class="stat-bar-fill" id="gb-sprechen" style="width:0%"></div></div></div>
+    <div class="stat-card grammatik"><div class="stat-label">GRAMMATIK</div><div class="stat-num" id="g-grammatik">0</div><div class="stat-sub">Ziel: 20+</div><div class="stat-bar"><div class="stat-bar-fill" id="gb-grammatik" style="width:0%"></div></div></div>
+    <div class="stat-card reinforce"><div class="stat-label">WIEDERHOLUNG</div><div class="stat-num" id="g-reinforce">0</div><div class="stat-sub" id="g-reinforce-sub">0 gel. / 0 total</div><div class="stat-bar"><div class="stat-bar-fill" id="gb-reinforce" style="width:0%"></div></div></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <input class="search-input" id="search-input" type="text" placeholder="Grammatikthema suchen..." oninput="renderFiltered()">
+    </div>
+  </div>
+  <div class="tag-filter" id="tag-filter">
+    <span class="tag-filter-label">TAGS :</span>
+    <span class="tag-pill active" id="tag-pill-ALL" onclick="filterTag(null)">Alle</span>
+  </div>
+
+  <div class="add-section">
+    <div class="section-label">NEUES THEMA</div>
+    <div class="add-grid">
+      <input class="add-input" id="topic-input" type="text" placeholder="Grammatikthema (z.B. Akkusativ, Perfekt...)" />
+      <input class="add-input" id="tags-input" type="text" placeholder="Tags, Komma getrennt (z.B. Kasus, Nomen)" />
+      <button class="btn btn-ink" onclick="addTopic()">+ HINZUFÜGEN</button>
+    </div>
+  </div>
+
+  <div class="section-label" style="margin-bottom:14px">MEINE THEMEN</div>
+  <div class="topics" id="topics-list">
+    <div class="empty" id="empty-state"><div class="empty-icon">📖</div><p>Füge dein erstes Grammatikthema hinzu.</p></div>
+  </div>
+  <div class="empty" id="no-results" style="display:none"><div class="empty-icon">🔍</div><p>Kein Thema gefunden.</p></div>
+  <div class="footer-actions"><button class="btn btn-ghost" onclick="confirmReset()">↺ Alles zurücksetzen</button></div>
+
+  </div><!-- /screen-übungen -->
+
+  <!-- ══ SCREEN: WORTSCHATZ ══ -->
+  <div class="screen" id="screen-wortschatz">
+  <div class="mnemo-section" style="margin-top:0;border-top:none;padding-top:0">
+    <header style="padding:40px 0 28px;border-bottom:2px solid var(--ink);margin-bottom:32px;position:relative;">
+      <div class="eyebrow">WORTSCHATZ — MNEMONIK-TRACKER</div>
+      <h1>WÖRTER &amp;<br><em style="color:var(--wortschatz)">MNEMONIKEN</em></h1>
+      <div class="header-sub">Mnemonic-Geschichten · Memory Palace · Konfidenz · Anki-Export</div>
+      <div class="header-right">
+        <div id="mn-total" class="header-total" style="color:var(--wortschatz)">0</div>
+        <div class="header-total-label">WÖRTER GESAMT</div>
+        <div id="mn-memorized" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--wortschatz);margin-top:4px;opacity:.8">0 memorisiert</div>
+        <div id="mn-total-time" class="header-time"></div>
+      </div>
+    </header>
+
+    <!-- STATS -->
+    <div class="mnemo-stats">
+      <div class="mnemo-stat c1"><div class="mnemo-stat-label">😰 SCHWACH</div><div class="mnemo-stat-num" id="mn-c1">0</div></div>
+      <div class="mnemo-stat c2"><div class="mnemo-stat-label">😕 WACKELIG</div><div class="mnemo-stat-num" id="mn-c2">0</div></div>
+      <div class="mnemo-stat c3"><div class="mnemo-stat-label">😐 OK</div><div class="mnemo-stat-num" id="mn-c3">0</div></div>
+      <div class="mnemo-stat c4"><div class="mnemo-stat-label">🙂 GUT</div><div class="mnemo-stat-num" id="mn-c4">0</div></div>
+      <div class="mnemo-stat c5"><div class="mnemo-stat-label">😎 SICHER</div><div class="mnemo-stat-num" id="mn-c5">0</div></div>
+    </div>
+
+    <!-- ADD WORD FORM -->
+    <div class="section-label">NEUES WORT HINZUFÜGEN</div>
+    <div class="mnemo-add">
+      <div class="mnemo-add-inner">
+
+        <div class="mf-row-2">
+          <div class="mf-field" id="mff-word">
+            <label class="mf-label">DEUTSCHES WORT / PHRASE</label>
+            <input class="mf-input" id="mn-word" type="text"
+              oninput="mfCheck('mff-word','mn-word')"
+              onfocus="mfFocus('mff-word')" onblur="mfBlur('mff-word','mn-word')">
+          </div>
+          <div class="mf-field" id="mff-trans">
+            <label class="mf-label">BEDEUTUNG AUF ENGLISCH</label>
+            <input class="mf-input" id="mn-trans" type="text"
+              oninput="mfCheck('mff-trans','mn-trans')"
+              onfocus="mfFocus('mff-trans')" onblur="mfBlur('mff-trans','mn-trans')">
+          </div>
+        </div>
+
+        <div class="mf-field" id="mff-mnemonic">
+          <label class="mf-label">MNEMONIC-GESCHICHTE (OPTIONAL)</label>
+          <textarea class="mf-input mf-textarea" id="mn-mnemonic"
+            oninput="mfCheck('mff-mnemonic','mn-mnemonic')"
+            onfocus="mfFocus('mff-mnemonic')" onblur="mfBlur('mff-mnemonic','mn-mnemonic')"></textarea>
+        </div>
+
+        <div class="mf-divider">
+          <div class="mf-divider-line"></div>
+          <span class="mf-divider-label">MEMORY PALACE</span>
+          <div class="mf-divider-line"></div>
+        </div>
+        <div class="palace-row" id="mn-palace-row">
+          <span class="palace-chip active" id="mnpc-null" onclick="mnSelPalace(null)">∅ Keiner</span>
+        </div>
+
+        <div class="conf-selector">
+          <div class="conf-selector-label">KONFIDENZ-NIVEAU</div>
+          <div class="conf-btns">
+            <button class="conf-chip active" data-v="1" onclick="mnSelConf(1)">😰<span class="conf-chip-label">SCHWACH</span></button>
+            <button class="conf-chip" data-v="2" onclick="mnSelConf(2)">😕<span class="conf-chip-label">WACKELIG</span></button>
+            <button class="conf-chip" data-v="3" onclick="mnSelConf(3)">😐<span class="conf-chip-label">OK</span></button>
+            <button class="conf-chip" data-v="4" onclick="mnSelConf(4)">🙂<span class="conf-chip-label">GUT</span></button>
+            <button class="conf-chip" data-v="5" onclick="mnSelConf(5)">😎<span class="conf-chip-label">SICHER</span></button>
+          </div>
+        </div>
+
+      </div>
+      <div class="mnemo-add-footer">
+        <button class="btn-add-word" id="mn-submit-btn" onclick="mnAddWord()">+ WORT HINZUFÜGEN</button>
+        <button class="btn-add-palace" onclick="mnAddPalace()">🏛 PALACE ERSTELLEN</button>
+        <span class="form-edit-hint" id="mn-edit-hint">✏ BEARBEITUNGSMODUS</span>
+      </div>
+    </div>
+
+    <!-- SEARCH + FILTER -->
+    <div class="mnemo-search-row">
+      <div class="search-wrap" style="flex:1">
+        <input class="search-input" id="mn-search" type="text" placeholder="Wort, Bedeutung oder Palace suchen..." oninput="mnRender()">
+      </div>
+    </div>
+    <div class="mnemo-filter-bar" id="mn-filter-bar">
+      <button class="mnemo-fbtn active" data-palace="all" onclick="mnSetPalaceFilter('all')">Alle Palaces</button>
+      <button class="mnemo-fbtn cf active" data-v="0" onclick="mnSetConfFilter(0)">Alle</button>
+      <button class="mnemo-fbtn cf" data-v="1" onclick="mnSetConfFilter(1)">😰</button>
+      <button class="mnemo-fbtn cf" data-v="2" onclick="mnSetConfFilter(2)">😕</button>
+      <button class="mnemo-fbtn cf" data-v="3" onclick="mnSetConfFilter(3)">😐</button>
+      <button class="mnemo-fbtn cf" data-v="4" onclick="mnSetConfFilter(4)">🙂</button>
+      <button class="mnemo-fbtn cf" data-v="5" onclick="mnSetConfFilter(5)">😎</button>
+    </div>
+
+    <!-- WORD LIST -->
+    <div class="mnemo-words" id="mn-words-list"></div>
+    <div class="mnemo-empty" id="mn-empty" style="display:none"><div class="empty-icon" style="font-size:28px;margin-bottom:8px">📖</div><p>Noch keine Wörter. Füge dein erstes Wort oben hinzu.</p></div>
+    <div class="mnemo-empty" id="mn-nores" style="display:none"><div class="empty-icon" style="font-size:28px;margin-bottom:8px">🔍</div><p>Kein Wort gefunden.</p></div>
+
+    <div class="mnemo-footer">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted)" id="mn-foot-info"></span>
+      <button class="mnemo-anki-btn" onclick="mnExportAnki()">&#8659; ANKI EXPORT</button>
+    </div>
+  </div>
+
+  </div><!-- /mnemo-section -->
+  </div><!-- /screen-wortschatz -->
+
+  <!-- ══ SCREEN: RANGLISTE ══ -->
+  <div class="screen" id="screen-rangliste">
+
+    <div class="rl-header">
+      <div class="eyebrow">WETTBEWERB — B1 / B2</div>
+      <h1>DEUTSCH<br><em>RANGLISTE</em></h1>
+      <div class="header-sub">Klicke auf einen Namen für vollständige Statistiken</div>
+      <div class="rl-header-right">
+        <div class="rl-total" id="rl-hdr-count">0</div>
+        <div class="rl-total-label">TEILNEHMER</div>
+        <div class="rl-updated" id="rl-hdr-updated"></div>
+      </div>
+    </div>
+
+    <!-- AUTO-JOIN NOTICE -->
+    <div class="rl-setup" id="rl-setup" style="border-color:rgba(45,106,79,.3);background:rgba(45,106,79,.04)">
+      <div class="section-label">AUTOMATISCH VERBUNDEN</div>
+      <div class="rl-hint" style="border-color:rgba(45,106,79,.25);background:rgba(45,106,79,.06);color:var(--green)">
+        ✓ <strong>Du bist automatisch in der Rangliste.</strong><br>
+        Jeder der sich mit Google anmeldet, erscheint hier automatisch.<br>
+        Teile einfach den Link mit deinen Freunden — kein Setup nötig!
+      </div>
+    </div>
+
+    <div id="rl-status" class="rl-status"></div>
+
+    <!-- MY ENTRY -->
+    <div class="rl-entry-panel">
+      <div class="section-label">MEIN EINTRAG</div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap">
+        <div style="flex:1;min-width:180px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink)" id="rl-myname-display"></div>
+        <div class="rl-autosync-badge" id="rl-autosync-badge">
+          <span class="rl-spinner" id="rl-spin" style="display:none"></span>
+          <span id="rl-sync-dot" class="rl-sync-dot"></span>
+          <span id="rl-sync-label">VERBINDE...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOARD -->
+    <div class="rl-board-header">
+      <div class="section-label" style="margin-bottom:0;flex:1">RANGLISTE</div>
+      <div class="rl-sort-row">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);align-self:center">SORT:</span>
+        <div class="rl-sort-select-wrap">
+          <select class="rl-sort-select" id="rl-sort-select" onchange="rlSetSort(this.value)">
+            <option value="total">GESAMT</option>
+            <option value="schreiben">SCHREIBEN</option>
+            <option value="hören">HÖREN</option>
+            <option value="sprechen">SPRECHEN</option>
+            <option value="grammatik">GRAMMATIK</option>
+            <option value="wortschatz">WORTSCHATZ</option>
+            <option value="totalTimeSec">&#9201; STUNDEN</option>
+            <option value="mistakes">&#10002; FEHLER</option>
+          </select>
+          <span class="rl-sort-arrow">&#9662;</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- header row labels -->
+    <div class="rl-table-wrap">
+    <div class="rl-list-header">
+      <div class="rl-list-header-cell" style="border-left:none">#</div>
+      <div class="rl-list-header-cell name-col">SPIELER</div>
+      <div class="rl-list-header-cell">WÖRTER</div>
+      <div class="rl-list-header-cell">STUNDEN</div>
+    </div>
+    <div class="rl-player-list" id="rl-player-list">
+      <div class="rl-empty"><div class="rl-empty-icon">🏆</div><p>Noch keine Einträge.<br>Verbinde dich oben und trage deinen Score ein!</p></div>
+    </div>
+    </div><!-- /rl-table-wrap -->
+
+    <!-- CHALLENGES -->
+    <div class="rl-challenges-wrap">
+      <div class="section-label" style="margin-top:32px">HERAUSFORDERUNGEN</div>
+      <div class="rl-challenge-form">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div>
+            <div class="rl-input-label">GEGEN (Spielername)</div>
+            <input class="add-input" id="ch-opponent" type="text" placeholder="z.B. Anna">
+          </div>
+          <div>
+            <div class="rl-input-label">ZIEL (Anzahl Übungen)</div>
+            <input class="add-input" id="ch-target" type="number" placeholder="z.B. 20" min="1">
+          </div>
+        </div>
+        <div class="rl-input-label" style="margin-bottom:6px">KATEGORIE</div>
+        <div class="rl-ch-type-row" id="ch-type-row">
+          <button class="rl-ch-type-pill active" data-v="total"      onclick="chSelType('total')">GESAMT</button>
+          <button class="rl-ch-type-pill"        data-v="schreiben"  onclick="chSelType('schreiben')">SCHREIBEN</button>
+          <button class="rl-ch-type-pill"        data-v="hören"      onclick="chSelType('hören')">HÖREN</button>
+          <button class="rl-ch-type-pill"        data-v="sprechen"   onclick="chSelType('sprechen')">SPRECHEN</button>
+          <button class="rl-ch-type-pill"        data-v="grammatik"  onclick="chSelType('grammatik')">GRAMMATIK</button>
+          <button class="rl-ch-type-pill"        data-v="wortschatz" onclick="chSelType('wortschatz')">WORTSCHATZ</button>
+        </div>
+        <div style="margin-top:14px">
+          <button class="btn btn-ink" onclick="chCreate()">⚔ HERAUSFORDERUNG ERSTELLEN</button>
+        </div>
+      </div>
+      <div class="rl-challenge-list" id="ch-list">
+        <div class="rl-empty" style="border-style:dashed"><div class="rl-empty-icon">⚔</div><p>Noch keine Herausforderungen.<br>Fordere jemanden aus der Rangliste heraus!</p></div>
+      </div>
+    </div>
+
+  </div><!-- /screen-rangliste -->
+
+  <!-- PLAYER DETAIL MODAL -->
+  <div class="rl-detail-overlay" id="rl-detail-overlay" onclick="rlDetailClose(event)">
+    <div class="rl-detail-modal">
+      <div class="rl-detail-header">
+        <button class="rl-detail-close" onclick="rlDetailCloseBtn()">✕</button>
+        <div class="rl-detail-rank-badge" id="rl-detail-rank"></div>
+        <div class="rl-detail-name" id="rl-detail-name"></div>
+        <div class="rl-detail-date" id="rl-detail-date"></div>
+      </div>
+      <div class="rl-detail-body">
+        <div class="rl-detail-kpi-row" id="rl-detail-kpis"></div>
+        <div class="section-label" style="margin-bottom:14px">SKILLPROFIL</div>
+        <div class="rl-detail-bars" id="rl-detail-bars"></div>
+        <div id="rl-detail-footer" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-type" id="modal-type"></div>
+    <div class="modal-concept" id="modal-concept"></div>
+    <div class="modal-clock idle" id="modal-clock">00:00</div>
+    <div class="modal-status" id="modal-status"></div>
+    <div id="modal-mistakes-wrap">
+      <div class="mistakes-label">FEHLER ZÄHLEN</div>
+      <div class="mistakes-row">
+        <button class="mistake-btn minus" onclick="modalChangeMistakes(-1)" title="Fehler entfernen">−</button>
+        <div>
+          <div class="mistakes-num zero" id="modal-mistakes-num">0</div>
+          <div class="mistakes-sub" id="modal-mistakes-sub">Fehler</div>
+        </div>
+        <button class="mistake-btn" onclick="modalChangeMistakes(1)" title="Fehler hinzufügen">+</button>
+      </div>
+    </div>
+    <div id="modal-note-wrap"><label>NOTIZ / FEHLER-BESCHREIBUNG (optional)</label><input id="modal-note-input" placeholder="z.B. Falsche Kasusendung, Wortstellung..." /></div>
+    <div class="modal-btns" id="modal-btns"></div>
+  </div>
+</div>
+
+<script>
+const TYPES = ['schreiben','hören','sprechen','grammatik'];
+const TYPE_LABELS = { schreiben:'SCHREIBEN', hören:'HÖREN/LESEN', sprechen:'SPRECHEN', grammatik:'GRAMMATIK', reinforce:'WIEDERHOLUNG' };
+const TYPE_TARGETS = { schreiben:8, hören:10, sprechen:50, grammatik:20 };
+const TYPE_COLORS = { schreiben:'var(--schreiben)', hören:'var(--hören)', sprechen:'var(--sprechen)', grammatik:'var(--grammatik)' };
+
+let state = { topics:[] };
+let activeTag = null;
+let modal = { open:false, topicId:null, type:null, running:false, segmentStart:null, accumulated:0, interval:null, mistakes:0 };
+
+function save() { try { localStorage.setItem('de_tracker_v6', JSON.stringify(state)); } catch(e){} }
+function load() {
+  try {
+    const r = localStorage.getItem('de_tracker_v6');
+    if (r) state = JSON.parse(r);
+    state.topics.forEach(t => {
+      if (!t.log) t.log = {};
+      TYPES.forEach(k => { if (!t.log[k]) t.log[k] = []; });
+      if (!t.tags) t.tags = [];
+      if (!t.reinforce) t.reinforce = [];
+    });
+  } catch(e) {}
+}
+
+function addTopic() {
+  const nameEl = document.getElementById('topic-input');
+  const tagsEl = document.getElementById('tags-input');
+  const name = nameEl.value.trim();
+  if (!name) { flash(nameEl); return; }
+  if (state.topics.some(t => t.name.toLowerCase()===name.toLowerCase())) { flash(nameEl); return; }
+  const tags = tagsEl.value.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+  const log = {}; TYPES.forEach(k => log[k]=[]);
+  state.topics.push({ id:Date.now(), name, tags, log, reinforce:[] });
+  nameEl.value=''; tagsEl.value='';
+  save(); renderTagFilter(); renderFiltered();
+}
+function flash(el) { el.style.borderColor='var(--accent)'; setTimeout(()=>el.style.borderColor='',700); }
+function deleteTopic(id) { state.topics=state.topics.filter(t=>t.id!==id); save(); renderTagFilter(); renderFiltered(); }
+function editMistakes(topicId, type, entryId, delta) {
+  const t=state.topics.find(t=>t.id===topicId); if(!t) return;
+  const e=t.log[type].find(e=>e.id===entryId); if(!e) return;
+  e.mistakes = Math.max(0, (typeof e.mistakes==='number' ? e.mistakes : 0) + delta);
+  // Update just the count span in DOM — no full re-render so history stays open
+  const span = document.querySelector('[data-mistake-id="'+entryId+'"]');
+  if(span) span.textContent = '\u270e '+e.mistakes;
+  save();
+}
+function deleteEntry(topicId, type, entryId) {
+  const t=state.topics.find(t=>t.id===topicId); if(!t) return;
+  t.log[type]=t.log[type].filter(e=>e.id!==entryId);
+  save(); renderFiltered();
+}
+function toggleInsight(topicId, type, entryId) {
+  const t=state.topics.find(t=>t.id===topicId); if(!t) return;
+  const entry=t.log[type].find(e=>e.id===entryId); if(!entry) return;
+  TYPES.forEach(k=>t.log[k].forEach(e=>{if(e.insight&&e.id!==entryId)e.insight=false;}));
+  entry.insight=!entry.insight;
+  save(); renderFiltered();
+}
+
+// MODAL
+function openModal(topicId, type) {
+  const t=state.topics.find(t=>t.id===topicId); if(!t) return;
+  modal={open:true,topicId,type,running:false,segmentStart:null,accumulated:0,interval:null,mistakes:0};
+  document.getElementById('modal-type').textContent=TYPE_LABELS[type];
+  document.getElementById('modal-type').className='modal-type '+type;
+  document.getElementById('modal-concept').textContent=t.name;
+  document.getElementById('modal-clock').textContent='00:00';
+  document.getElementById('modal-clock').className='modal-clock idle';
+  document.getElementById('modal-status').textContent='BEREIT — Starte den Chronometer';
+  document.getElementById('modal-status').className='modal-status';
+  document.getElementById('modal-note-wrap').style.display='none';
+  // Show mistake counter only for Schreiben
+  const mw=document.getElementById('modal-mistakes-wrap');
+  if(type==='schreiben'){
+    mw.style.display='block';
+    document.getElementById('modal-mistakes-num').textContent='0';
+    document.getElementById('modal-mistakes-num').className='mistakes-num zero';
+    document.getElementById('modal-mistakes-sub').textContent='Fehler';
+  } else {
+    mw.style.display='none';
+  }
+  renderModalBtns();
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function openReinforceModal(topicId, reinforceId, isNew) {
+  const t=state.topics.find(t=>t.id===topicId); if(!t) return;
+  const r=t.reinforce.find(r=>r.id===reinforceId); if(!r) return;
+  modal={open:true,topicId,type:'reinforce',reinforceId,running:false,segmentStart:null,accumulated:0,interval:null};
+  document.getElementById('modal-type').textContent='WIEDERHOLUNG';
+  document.getElementById('modal-type').className='modal-type reinforce';
+  const num=(r.attempts||[]).length+1;
+  document.getElementById('modal-concept').textContent=t.name+' — Versuch #'+num;
+  document.getElementById('modal-clock').textContent='00:00';
+  document.getElementById('modal-clock').className='modal-clock idle';
+  const isDirect = !!(t.reinforce.find(r=>r.id===reinforceId)?.direct);
+  document.getElementById('modal-status').textContent=isNew?(isDirect?'DIREKTE WIEDERHOLUNG':'NEUE WIEDERHOLUNG'):'VERSUCH '+num;
+  document.getElementById('modal-status').className='modal-status';
+  document.getElementById('modal-note-wrap').style.display='block';
+  document.getElementById('modal-note-input').value=r.label||'';
+  renderModalBtns();
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal() {
+  if(modal.running){clearInterval(modal.interval);modal.interval=null;modal.running=false;}
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.getElementById('modal-note-wrap').style.display='none';
+  modal.open=false;
+}
+function renderModalBtns() {
+  const el=document.getElementById('modal-btns');
+  const hasTime=modal.accumulated>0;
+  if(!modal.running&&!hasTime) {
+    el.innerHTML='<button class="modal-btn modal-btn-start" onclick="modalResume()">&#9654; STARTEN</button><button class="modal-btn modal-btn-cancel" onclick="closeModal()">Abbrechen</button>';
+  } else if(modal.running) {
+    el.innerHTML='<button class="modal-btn modal-btn-pause" onclick="modalPause()">&#9646;&#9646; PAUSE</button><button class="modal-btn modal-btn-stop" onclick="modalSave()">&#9209; SPEICHERN</button><button class="modal-btn modal-btn-cancel" onclick="closeModal()">Verwerfen</button>';
+  } else {
+    el.innerHTML='<button class="modal-btn modal-btn-start" onclick="modalResume()">&#9654; FORTSETZEN</button><button class="modal-btn modal-btn-stop" onclick="modalSave()">&#9209; SPEICHERN</button><button class="modal-btn modal-btn-cancel" onclick="closeModal()">Verwerfen</button>';
+  }
+}
+function modalResume() {
+  modal.running=true; modal.segmentStart=Date.now();
+  document.getElementById('modal-clock').className='modal-clock running';
+  document.getElementById('modal-status').textContent='LÄUFT...';
+  document.getElementById('modal-status').className='modal-status running';
+  renderModalBtns();
+  modal.interval=setInterval(()=>{
+    const live=modal.accumulated+Math.floor((Date.now()-modal.segmentStart)/1000);
+    document.getElementById('modal-clock').textContent=fmt(live);
+  },500);
+}
+function modalPause() {
+  clearInterval(modal.interval); modal.interval=null;
+  modal.accumulated+=Math.floor((Date.now()-modal.segmentStart)/1000);
+  modal.running=false;
+  document.getElementById('modal-clock').className='modal-clock idle';
+  document.getElementById('modal-status').textContent='PAUSE — '+fmt(modal.accumulated)+' gespeichert';
+  document.getElementById('modal-status').className='modal-status';
+  renderModalBtns();
+}
+function modalChangeMistakes(delta) {
+  modal.mistakes = Math.max(0, (modal.mistakes||0) + delta);
+  const el = document.getElementById('modal-mistakes-num');
+  const sub = document.getElementById('modal-mistakes-sub');
+  if(el) {
+    el.textContent = modal.mistakes;
+    el.className = 'mistakes-num' + (modal.mistakes===0?' zero':'');
+    // bump animation
+    el.style.transform='scale(1.3)';setTimeout(()=>el.style.transform='',150);
+  }
+  if(sub) sub.textContent = modal.mistakes===1 ? 'Fehler' : 'Fehler';
+}
+function modalSave() {
+  if(modal.running){modal.accumulated+=Math.floor((Date.now()-modal.segmentStart)/1000);clearInterval(modal.interval);modal.interval=null;modal.running=false;}
+  const elapsed=modal.accumulated;
+  const t=state.topics.find(t=>t.id===modal.topicId); if(!t) return;
+  if(modal.type==='reinforce') {
+    const r=t.reinforce.find(r=>r.id===modal.reinforceId); if(!r) return;
+    if(!r.attempts)r.attempts=[];
+    r.attempts.push({id:Date.now(),elapsed});
+    const note=document.getElementById('modal-note-input').value.trim();
+    if(note)r.label=note;
+  } else {
+    t.log[modal.type].push({id:Date.now(),elapsed,date:new Date().toLocaleDateString('de-DE'),mistakes:(modal.type==='schreiben'?modal.mistakes:undefined)});
+    const numEl=document.getElementById('num-'+modal.topicId+'-'+modal.type);
+    if(numEl){numEl.classList.remove('bump');void numEl.offsetWidth;numEl.classList.add('bump');}
+  }
+  save(); closeModal(); renderFiltered();
+}
+document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.open)closeModal();});
+
+// REINFORCE
+function addReinforcement(topicId, type, entryId) {
+  const t=state.topics.find(t=>t.id===topicId); if(!t) return;
+  const entry=t.log[type].find(e=>e.id===entryId); if(!entry) return;
+  entry.reinforced=true;
+  const num=t.log[type].indexOf(entry)+1;
+  t.reinforce.push({id:Date.now(),label:'',fromType:type,fromNum:num,date:new Date().toLocaleDateString('de-DE'),attempts:[],solved:false});
+  save(); renderFiltered();
+  const rid=t.reinforce[t.reinforce.length-1].id;
+  openReinforceModal(topicId,rid,true);
+}
+function addDirectReinforce(topicId) {
+  const t=state.topics.find(t=>t.id===topicId); if(!t) return;
+  const rid=Date.now();
+  t.reinforce.push({id:rid,label:'',fromType:null,fromNum:null,direct:true,date:new Date().toLocaleDateString('de-DE'),attempts:[],solved:false});
+  save(); renderFiltered();
+  // expand reinforce section and start editing
+  const uid='rf-'+topicId;
+  const listEl=document.getElementById(uid);
+  const btnEl=document.getElementById('btn-'+uid);
+  if(listEl){listEl.classList.add('open');}
+  if(btnEl){btnEl.classList.add('open');}
+  rfEditing=rid; renderFiltered();
+  setTimeout(()=>{ const el=document.getElementById('rfi-'+rid); if(el){el.focus();} },80);
+}
+
+function markSolved(topicId, reinforceId) {
+  const t=state.topics.find(t=>t.id===topicId); if(!t) return;
+  const r=t.reinforce.find(r=>r.id===reinforceId); if(!r) return;
+  r.solved=!r.solved; save(); renderFiltered();
+}
+function deleteReinforce(topicId, reinforceId) {
+  const t=state.topics.find(t=>t.id===topicId); if(!t) return;
+  TYPES.forEach(k=>t.log[k].forEach(e=>{if(e.reinforcedId===reinforceId)e.reinforced=false;}));
+  t.reinforce=t.reinforce.filter(r=>r.id!==reinforceId);
+  save(); renderFiltered();
+}
+
+// TAGS
+function filterTag(tag) {
+  activeTag=tag;
+  document.querySelectorAll('.tag-pill').forEach(p=>p.classList.remove('active'));
+  const el=document.getElementById('tag-pill-'+(tag||'ALL'));
+  if(el)el.classList.add('active');
+  renderFiltered();
+}
+function renderTagFilter() {
+  const allTags=[...new Set(state.topics.flatMap(t=>t.tags))].sort();
+  const bar=document.getElementById('tag-filter');
+  bar.innerHTML='<span class="tag-filter-label">TAGS :</span>';
+  const ap=document.createElement('span');
+  ap.className='tag-pill'+(activeTag===null?' active':''); ap.id='tag-pill-ALL'; ap.textContent='Alle';
+  ap.onclick=()=>filterTag(null); bar.appendChild(ap);
+  allTags.forEach(tag=>{
+    const p=document.createElement('span');
+    p.className='tag-pill'+(activeTag===tag?' active':''); p.id='tag-pill-'+tag; p.textContent=tag;
+    p.onclick=()=>filterTag(tag); bar.appendChild(p);
+  });
+}
+function confirmReset() {
+  if(!confirm('Alles zurücksetzen? Kann nicht rückgängig gemacht werden.')) return;
+  if(modal.open)closeModal();
+  state={topics:[]}; activeTag=null;
+  save(); renderTagFilter(); renderFiltered();
+}
+
+// UTILS
+function fmt(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;return h>0?h+':'+pad(m)+':'+pad(ss):pad(m)+':'+pad(ss);}
+function fmtH(s){if(s<60)return s+'s';const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);return h>0?h+'h '+m+'m':m+'m';}
+function pad(n){return String(n).padStart(2,'0');}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function countLog(t,k){return t.log[k]?t.log[k].length:0;}
+function secLog(t,k){return t.log[k]?t.log[k].reduce((a,e)=>a+e.elapsed,0):0;}
+function totalSecAll(t){return TYPES.reduce((a,k)=>a+secLog(t,k),0);}
+
+function renderGlobal() {
+  let totals={}; TYPES.forEach(k=>totals[k]=0);
+  let gSec=0;
+  state.topics.forEach(t=>{TYPES.forEach(k=>totals[k]+=countLog(t,k));gSec+=totalSecAll(t);});
+  document.getElementById('total-done').textContent=TYPES.reduce((a,k)=>a+totals[k],0);
+  const h=Math.floor(gSec/3600),m=Math.floor((gSec%3600)/60),s=Math.floor(gSec%60);
+  document.getElementById('total-time').textContent=pad(h)+'h '+pad(m)+'m '+pad(s)+'s Gesamtzeit';
+  TYPES.forEach(k=>{
+    const gEl=document.getElementById('g-'+k); if(!gEl)return;
+    gEl.textContent=totals[k]||0;
+    const n=state.topics.length||1,tgt=TYPE_TARGETS[k]||10;
+    const gbEl=document.getElementById('gb-'+k); if(gbEl)gbEl.style.width=Math.min(100,((totals[k]||0)/(tgt*n))*100)+'%';
+    if(k==='sprechen'){
+      let spSec=0;
+      state.topics.forEach(t=>{if(t.log&&t.log.sprechen)t.log.sprechen.forEach(e=>spSec+=e.elapsed);});
+      const subEl=document.getElementById('g-sprechen-sub');
+      if(subEl){const sh=Math.floor(spSec/3600),sm=Math.floor((spSec%3600)/60);subEl.textContent=sh+'h '+String(sm).padStart(2,'0')+'m Sprechzeit';}
+    }
+  });
+  const gRtotal=state.topics.reduce((a,t)=>a+(t.reinforce?t.reinforce.length:0),0);
+  const gRsolved=state.topics.reduce((a,t)=>a+(t.reinforce?t.reinforce.filter(r=>r.solved).length:0),0);
+  document.getElementById('g-reinforce').textContent=gRtotal-gRsolved;
+  document.getElementById('g-reinforce-sub').textContent=gRsolved+' gel. / '+gRtotal+' total';
+  document.getElementById('gb-reinforce').style.width=gRtotal>0?Math.round((gRsolved/gRtotal)*100)+'%':'0%';
+  const trEl=document.getElementById('total-reinforce'); if(trEl)trEl.textContent=gRtotal;
+  const gRsec=state.topics.reduce((a,t)=>a+(t.reinforce||[]).reduce((b,r)=>(r.attempts||[]).reduce((c,x)=>c+x.elapsed,b),0),0);
+  const rtEl=document.getElementById('total-reinforce-time'); if(rtEl){const rh=Math.floor(gRsec/3600),rm=Math.floor((gRsec%3600)/60),rs=Math.floor(gRsec%60);rtEl.textContent=pad(rh)+'h '+pad(rm)+'m '+pad(rs)+'s';}
+}
+
+function renderFiltered() {
+  const q=document.getElementById('search-input').value.toLowerCase().trim();
+  let visible=state.topics;
+  if(activeTag)visible=visible.filter(t=>t.tags.includes(activeTag));
+  if(q)visible=visible.filter(t=>t.name.toLowerCase().includes(q)||t.tags.some(g=>g.includes(q)));
+  renderGlobal();
+  const list=document.getElementById('topics-list');
+  const empty=document.getElementById('empty-state');
+  const noRes=document.getElementById('no-results');
+  if(state.topics.length===0){empty.style.display='block';noRes.style.display='none';list.querySelectorAll('.topic-card').forEach(e=>e.remove());return;}
+  empty.style.display='none';
+  noRes.style.display=visible.length===0?'block':'none';
+  list.querySelectorAll('.topic-card').forEach(el=>{if(!visible.find(t=>t.id==el.dataset.id))el.remove();});
+  visible.forEach(t=>{
+    // Save open state of all history/reinforce lists before re-render
+    const openIds = {};
+    const ex=list.querySelector('[data-id="'+t.id+'"]');
+    if(ex){
+      ex.querySelectorAll('.history-list.open, .history-list[id]').forEach(el=>{
+        if(el.classList.contains('open')) openIds[el.id]=true;
+      });
+    }
+    const html=cardHTML(t);
+    if(ex){ex.innerHTML=html;}
+    else{const c=document.createElement('div');c.className='topic-card';c.dataset.id=t.id;c.innerHTML=html;list.appendChild(c);}
+    // Restore open state
+    const card=list.querySelector('[data-id="'+t.id+'"]');
+    if(card){
+      Object.keys(openIds).forEach(id=>{
+        const listEl=card.querySelector('#'+id);
+        const btnEl=card.querySelector('#btn-'+id);
+        if(listEl){listEl.classList.add('open');}
+        if(btnEl){btnEl.classList.add('open');}
+      });
+    }
+  });
+}
+
+function getInsightBadge(t) {
+  for(const k of TYPES){
+    const idx=t.log[k].findIndex(e=>e.insight);
+    if(idx!==-1)return '<div class="insight-line">&#128161; Verstanden bei Übung #'+(idx+1)+' ('+TYPE_LABELS[k]+')</div>';
+  }
+  return '';
+}
+
+function cardHTML(t) {
+  const total=TYPES.reduce((a,k)=>a+countLog(t,k),0);
+  const sec=totalSecAll(t);
+  const tagHTML=t.tags.map(g=>'<span class="ttag" onclick="filterTag(\''+esc(g)+'\')">'+esc(g)+'</span>').join('');
+  return '<div class="topic-header">'+
+    '<div class="topic-left">'+
+      '<div class="topic-name">'+esc(t.name)+'</div>'+
+      getInsightBadge(t)+
+      (t.tags.length?'<div class="topic-tags">'+tagHTML+'</div>':'')+
+    '</div>'+
+    '<div class="topic-right">'+
+      (sec>0?'<div class="topic-time">&#9203; '+fmtH(sec)+'</div>':'')+
+      '<div class="topic-total">'+total+'<span> Üb.</span></div>'+
+      '<button class="btn-delete" onclick="deleteTopic('+t.id+')">✕</button>'+
+    '</div>'+
+  '</div>'+
+  '<div class="counters">'+TYPES.map(k=>ctrHTML(t,k)).join('')+reinforceCounterHTML(t)+'</div>'+
+  historyHTML(t)+reinforceListHTML(t);
+}
+
+function ctrHTML(t,k) {
+  const v=countLog(t,k),tgt=TYPE_TARGETS[k]||10,pct=Math.min(100,Math.round((v/tgt)*100)),done=v>=tgt,sec=secLog(t,k);
+  const mistakesTotal=(k==='schreiben'&&t.log[k])?t.log[k].reduce((a,e)=>a+(typeof e.mistakes==='number'?e.mistakes:0),0):0;
+  const mistakesLine=(k==='schreiben'&&mistakesTotal>0)
+    ?'<div style="font-family:IBM Plex Mono,monospace;font-size:9px;color:var(--schreiben);margin-top:1px">✎ '+mistakesTotal+' Fehler gesamt</div>'
+    :'';
+  return '<div class="counter '+k+'">'+
+    '<div class="counter-label">'+TYPE_LABELS[k]+'</div>'+
+    '<div class="counter-row">'+
+      '<div>'+
+        '<div class="counter-num" id="num-'+t.id+'-'+k+'">'+v+'</div>'+
+        (sec>0?'<div class="counter-time">&#9203; '+fmtH(sec)+'</div>':'')+
+        mistakesLine+
+      '</div>'+
+      '<button class="cbtn" onclick="openModal('+t.id+',\''+k+'\')" title="Übung hinzufügen">+</button>'+
+    '</div>'+
+    '<div class="counter-target">'+v+'/'+tgt+(done?' ✓':'')+'</div>'+
+    '<div class="counter-bar"><div class="counter-bar-fill'+(done?' done':'')+'" style="width:'+pct+'%"></div></div>'+
+  '</div>';
+}
+
+function reinforceCounterHTML(t) {
+  const total=t.reinforce.length,solved=t.reinforce.filter(r=>r.solved).length,pending=total-solved;
+  const pct=total>0?Math.round((solved/total)*100):0;
+  const sec=t.reinforce.reduce((a,r)=>(r.attempts||[]).reduce((b,x)=>b+x.elapsed,a),0);
+  return '<div class="counter reinforce">'+
+    '<div class="counter-label">WIEDERHOLUNG</div>'+
+    '<div class="counter-row">'+
+      '<div>'+
+        '<div class="counter-num" style="font-size:22px">'+pending+'<span style="font-size:12px;color:var(--muted)"> / '+total+'</span></div>'+
+        (sec>0?'<div class="counter-time">&#9203; '+fmtH(sec)+'</div>':'')+
+      '</div>'+
+      '<button class="cbtn" onclick="addDirectReinforcement('+t.id+')" title="Übung direkt hinzufügen" style="align-self:flex-start">+</button>'+
+    '</div>'+
+    '<div class="counter-target">'+solved+' gel. · '+pending+' offen</div>'+
+    '<div class="counter-bar"><div class="counter-bar-fill'+(pct===100?' done':'')+'" style="width:'+pct+'%"></div></div>'+
+  '</div>';
+}
+
+function addDirectReinforcement(topicId) {
+  const t=state.topics.find(t=>t.id===topicId); if(!t) return;
+  const rid=Date.now();
+  t.reinforce.push({
+    id:rid, label:'', fromType:null, fromNum:null,
+    direct:true, date:new Date().toLocaleDateString('de-DE'),
+    attempts:[], solved:false
+  });
+  save(); renderFiltered();
+  // Open modal immediately with label field visible so user can describe the exercise
+  openReinforceModal(topicId, rid, true);
+}
+
+function historyHTML(t) {
+  const all=TYPES.flatMap(k=>t.log[k].map(e=>({...e,type:k})));
+  if(all.length===0)return '';
+  const sections=TYPES.filter(k=>t.log[k].length>0).map(k=>{
+    const entries=[...t.log[k]].reverse();
+    const rows=entries.map((e,i)=>{
+      const num=entries.length-i;
+      const wrongBtn=e.reinforced
+        ?'<span style="font-size:9px;color:var(--accent);font-family:IBM Plex Mono,monospace;letter-spacing:1px">&#10007; FEHLER</span>'
+        :'<button class="btn-wrong" onclick="addReinforcement('+t.id+',\''+k+'\','+e.id+')">&#10007; FALSCH</button>';
+      const mCount = (k==='schreiben') ? (typeof e.mistakes==='number' ? e.mistakes : 0) : null;
+      const mistakeWidget=(k==='schreiben')
+        ?'<span style="display:inline-flex;align-items:center;gap:3px;font-family:IBM Plex Mono,monospace;font-size:9px;background:rgba(91,44,111,.08);border:1px solid rgba(91,44,111,.22);border-radius:2px;padding:1px 4px;white-space:nowrap">'+
+          '<button onclick="event.stopPropagation();editMistakes('+t.id+',\''+k+'\','+e.id+',-1)" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:11px;padding:0 2px;line-height:1;font-family:monospace" title="Einen Fehler entfernen">−</button>'+
+          '<span data-mistake-id="'+e.id+'" style="color:var(--schreiben);min-width:14px;text-align:center">✎ '+mCount+'</span>'+
+          '<button onclick="event.stopPropagation();editMistakes('+t.id+',\''+k+'\','+e.id+',1)" style="background:none;border:none;cursor:pointer;color:var(--schreiben);font-size:11px;padding:0 2px;line-height:1;font-family:monospace" title="Einen Fehler hinzufügen">+</button>'+
+        '</span>'
+        :'';
+      return '<div class="history-item '+k+(e.insight?' insight':'')+'">'+
+        '<div class="history-item-num">'+num+'</div>'+
+        '<div class="history-item-time">&#9203; '+fmt(e.elapsed)+'<span style="color:var(--muted);font-size:9px;margin-left:4px">('+fmtH(e.elapsed)+')</span></div>'+
+        mistakeWidget+
+        (e.insight?'<span class="insight-badge">&#128161; Aha-Moment</span>':'')+
+        '<div class="history-item-date">'+e.date+'</div>'+
+        '<button class="btn-insight'+(e.insight?' active':'')+'" onclick="event.stopPropagation();toggleInsight('+t.id+',\''+k+'\','+e.id+')" title="Aha-Moment">&#128161;</button>'+
+        wrongBtn+
+        '<button class="history-item-del" onclick="event.stopPropagation();deleteEntry('+t.id+',\''+k+'\','+e.id+')">✕</button>'+
+      '</div>';
+    }).join('');
+    return '<div class="history-section"><div class="history-section-label">'+TYPE_LABELS[k]+' — '+t.log[k].length+' Übung'+(t.log[k].length!==1?'en':'')+'</div>'+rows+'</div>';
+  }).join('');
+  const uid='hist-'+t.id,total2=all.reduce((a,e)=>a+e.elapsed,0);
+  return '<div class="history-wrap">'+
+    '<button class="history-toggle" id="btn-'+uid+'" onclick="toggleHistory(\''+uid+'\')">'+
+      '<span class="arrow">&#9658;</span> VERLAUF ('+all.length+' Übung'+(all.length!==1?'en':'')+' · '+fmtH(total2)+')'+
+    '</button>'+
+    '<div class="history-list" id="'+uid+'">'+sections+'</div>'+
+  '</div>';
+}
+
+let rfEditing = null;
+function rfStartEdit(rid) {
+  rfEditing = rid; renderFiltered();
+  setTimeout(()=>{ const el=document.getElementById('rfi-'+rid); if(el){el.focus();el.select();} },50);
+}
+function rfSaveLabel(topicId, rid) {
+  const t=state.topics.find(t=>t.id===topicId); if(!t)return;
+  const r=t.reinforce.find(r=>r.id===rid); if(!r)return;
+  const el=document.getElementById('rfi-'+rid);
+  if(el) r.label=el.value.trim();
+  rfEditing=null; save(); renderFiltered();
+}
+function rfLabelKey(e, topicId, rid) {
+  if(e.key==='Enter') rfSaveLabel(topicId, rid);
+  if(e.key==='Escape') { rfEditing=null; renderFiltered(); }
+}
+
+function reinforceListHTML(t) {
+  if(!t.reinforce||t.reinforce.length===0)return '';
+  const pending=t.reinforce.filter(r=>!r.solved),solved=t.reinforce.filter(r=>r.solved);
+  const totalSec2=t.reinforce.reduce((a,r)=>(r.attempts||[]).reduce((b,x)=>b+x.elapsed,a),0);
+  const itemHTML=function(r){
+    const attempts=r.attempts||[],sec=attempts.reduce((a,x)=>a+x.elapsed,0);
+    const fc=TYPE_COLORS[r.fromType]||'var(--muted)';
+    const isEditing = rfEditing === r.id;
+    return '<div class="reinforce-item'+(r.solved?' solved':'')+'">'+
+      '<div class="reinforce-item-header">'+
+        (isEditing
+          ? '<input class="reinforce-label-input" id="rfi-'+r.id+'" value="'+esc(r.label||'')+'" placeholder="Übungsbeschreibung..." onkeydown="rfLabelKey(event,'+t.id+','+r.id+')" />'
+          : '<div class="reinforce-item-label" onclick="rfStartEdit('+r.id+')" title="Klicken zum Bearbeiten">'+(r.label?esc(r.label):'<span style="color:var(--muted);font-style:italic">+ Label hinzufügen...</span>')+'</div>'
+        )+
+        (isEditing
+          ? '<button class="btn-solve" style="padding:3px 10px" onclick="rfSaveLabel('+t.id+','+r.id+')">&#10003;</button>'
+          : '<span class="reinforce-item-from" style="color:'+fc+'">'+(r.fromType?TYPE_LABELS[r.fromType]+' #'+r.fromNum:'DIREKT')+'</span>'
+        )+
+        (r.solved&&!isEditing?'<span class="solved-badge">&#10003; GELERNT</span>':'')+
+        '<button class="btn-reinforce-del" onclick="deleteReinforce('+t.id+','+r.id+')">✕</button>'+
+      '</div>'+
+      '<div class="reinforce-item-stats">'+
+        '<span class="reinforce-attempts">&#8635; '+attempts.length+' Versuch'+(attempts.length!==1?'e':'')+'</span>'+
+        (sec>0?'<span class="reinforce-time">&#9203; '+fmtH(sec)+'</span>':'')+
+        '<span class="reinforce-date">'+r.date+'</span>'+
+        (!r.solved?'<button class="btn-reinforce-attempt" onclick="openReinforceModal('+t.id+','+r.id+',false)">+ Versuch</button>':'')+
+        '<button class="btn-solve" onclick="markSolved('+t.id+','+r.id+')">'+(r.solved?'&#8635; Wiederöffnen':'&#10003; Gelernt')+'</button>'+
+      '</div>'+
+      (attempts.length>0?'<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">'+
+        attempts.map((a,i)=>'<span style="font-family:IBM Plex Mono,monospace;font-size:9px;background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:2px 7px;color:var(--muted)">#'+(i+1)+' '+fmt(a.elapsed)+'</span>').join('')+
+      '</div>':'')+
+    '</div>';
+  };
+  let inner=pending.map(itemHTML).join('');
+  if(solved.length>0){
+    inner+='<div style="font-family:IBM Plex Mono,monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin:10px 0 6px;padding-top:8px;border-top:1px solid var(--border)">GELERNT ('+solved.length+')</div>';
+    inner+=solved.map(itemHTML).join('');
+  }
+  const uid='rf-'+t.id;
+  return '<div class="reinforce-section">'+
+    '<button class="history-toggle" id="btn-'+uid+'" onclick="toggleHistory(\''+uid+'\')">'+
+      '<span class="arrow" style="color:var(--accent)">&#9658;</span> '+
+      '<span style="color:var(--accent)">WIEDERHOLUNG ('+t.reinforce.length+' Übung'+(t.reinforce.length!==1?'en':'')+(totalSec2>0?' · '+fmtH(totalSec2):'')+') </span>'+
+    '</button>'+
+    '<div class="history-list" id="'+uid+'">'+inner+'</div>'+
+  '</div>';
+}
+
+function toggleHistory(uid){
+  const list=document.getElementById(uid),btn=document.getElementById('btn-'+uid);
+  const open=list.classList.toggle('open');btn.classList.toggle('open',open);
+}
+
+
+// ══════════════════════════════════════
+// WORTSCHATZ — MNEMONIK SYSTEM
+// ══════════════════════════════════════
+// state.mnemo = { words:[], palaces:[] }
+// word: { id, word, translation, mnemonic, palaceId, confidence, createdAt }
+// palace: { id, name, emoji }
+
+function mnEnsure() {
+  if (!state.mnemo) state.mnemo = { words:[], palaces:[] };
+  if (!state.mnemo.words) state.mnemo.words = [];
+  if (!state.mnemo.palaces) state.mnemo.palaces = [];
+}
+
+let mnConf = 1;
+let mnPalId = null;
+let mnPalFilter = 'all';
+let mnConfFilter = 0;
+let mnEditId = null;
+let mnExpanded = {};
+let mnPendingDel = null;
+const MN_CE = {1:'😰',2:'😕',3:'😐',4:'🙂',5:'😎'};
+const MN_CC = {1:'var(--accent)',2:'#C65D00',3:'var(--wortschatz)',4:'var(--green)',5:'#2D6A4F'};
+
+function mnSelConf(v) {
+  mnConf = v;
+  document.querySelectorAll('.conf-chip').forEach(b => {
+    b.classList.remove('active');
+    if (parseInt(b.dataset.v)===v) b.classList.add('active');
+  });
+}
+
+function mnSelPalace(id) {
+  mnPalId = id;
+  document.querySelectorAll('.palace-chip').forEach(c => c.classList.remove('active'));
+  const el = document.getElementById('mnpc-'+(id===null?'null':id));
+  if (el) el.classList.add('active');
+}
+
+function mnRenderPalaceChips() {
+  mnEnsure();
+  const row = document.getElementById('mn-palace-row');
+  let html = '<span class="palace-row-label">PALACE :</span>' +
+    '<span class="palace-chip'+(mnPalId===null?' active':'')+'" id="mnpc-null" onclick="mnSelPalace(null)">Keiner</span>';
+  state.mnemo.palaces.forEach(p => {
+    html += '<span class="palace-chip'+(mnPalId===p.id?' active':'')+'" id="mnpc-'+p.id+'" onclick="mnSelPalace('+p.id+')">'+p.emoji+' '+esc(p.name)+'</span>';
+  });
+  row.innerHTML = html;
+}
+
+function mnAddPalace() {
+  const name = prompt('Palace-Name:');
+  if (!name || !name.trim()) return;
+  mnEnsure();
+  const emojis = ['🏛','🏰','🏠','🏡','🌲','🏔','🔮','🎭','📚','🚀'];
+  state.mnemo.palaces.push({ id:Date.now(), name:name.trim(), emoji:emojis[state.mnemo.palaces.length%emojis.length] });
+  save(); mnRenderPalaceChips(); mnRenderPalaceFilter();
+}
+
+function mnRenderPalaceFilter() {
+  mnEnsure();
+  const bar = document.getElementById('mn-filter-bar');
+  // Keep conf filter buttons, rebuild palace filters
+  let html = '<button class="mnemo-fbtn'+(mnPalFilter==='all'?' active':'')+'" data-palace="all" onclick="mnSetPalaceFilter(&quot;all&quot;)">Alle Palaces</button>';
+  state.mnemo.palaces.forEach(p => {
+    html += '<button class="mnemo-fbtn'+(mnPalFilter===p.id?' active':'')+'" data-palace="'+p.id+'" onclick="mnSetPalaceFilter('+p.id+')">'+p.emoji+' '+esc(p.name)+'</button>';
+  });
+  // conf filters
+  html += '<button class="mnemo-fbtn cf'+(mnConfFilter===0?' active':'')+'" data-v="0" onclick="mnSetConfFilter(0)">Alle</button>';
+  [1,2,3,4,5].forEach(v => {
+    html += '<button class="mnemo-fbtn cf'+(mnConfFilter===v?' active':'')+'" data-v="'+v+'" onclick="mnSetConfFilter('+v+')">'+MN_CE[v]+'</button>';
+  });
+  bar.innerHTML = html;
+}
+
+function mnSetPalaceFilter(id) { mnPalFilter=id; mnRenderPalaceFilter(); mnRender(); }
+function mnSetConfFilter(v) { mnConfFilter=v; mnRenderPalaceFilter(); mnRender(); }
+
+function mnAddWord() {
+  mnEnsure();
+  const word = document.getElementById('mn-word').value.trim();
+  const trans = document.getElementById('mn-trans').value.trim();
+  if (!word) { flash(document.getElementById('mn-word')); return; }
+  if (!trans) { flash(document.getElementById('mn-trans')); return; }
+  const mnemonic = document.getElementById('mn-mnemonic').value.trim();
+  if (mnEditId) {
+    const w = state.mnemo.words.find(w=>w.id===mnEditId);
+    if (w) { w.word=word; w.translation=trans; w.mnemonic=mnemonic; w.palaceId=mnPalId; w.confidence=mnConf; }
+    mnEditId=null;
+    document.querySelector('.btn-ink[onclick="mnAddWord()"]').textContent='+ WORT HINZUFÜGEN';
+  } else {
+    state.mnemo.words.push({ id:Date.now(), word, translation:trans, mnemonic, palaceId:mnPalId, confidence:mnConf, createdAt:Date.now() });
+  }
+  mnFormReset();
+  mnPalId=null; mnConf=1;
+  mnSelConf(1); mnRenderPalaceChips();
+  save(); mnRender(); mnRenderGlobal();
+}
+
+function mfCheck(fid, iid) {
+  const el = document.getElementById(iid);
+  const f = document.getElementById(fid);
+  if(el && f) f.classList.toggle('has-value', el.value.trim().length > 0);
+}
+function mfFocus(fid) { document.getElementById(fid).classList.add('has-value'); }
+function mfBlur(fid, iid) {
+  const el = document.getElementById(iid);
+  if(el && !el.value.trim()) document.getElementById(fid).classList.remove('has-value');
+}
+function mnFormReset() {
+  ['mn-word','mn-trans','mn-mnemonic'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value='';
+  });
+  ['mff-word','mff-trans','mff-mnemonic'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.classList.remove('has-value');
+  });
+  const hint = document.getElementById('mn-edit-hint');
+  const btn  = document.getElementById('mn-submit-btn');
+  if(hint) hint.classList.remove('visible');
+  if(btn)  btn.textContent = '+ WORT HINZUFÜGEN';
+}
+
+function mnEditWord(id) {
+  mnEnsure();
+  const w = state.mnemo.words.find(w=>w.id===id); if(!w) return;
+  document.getElementById('mn-word').value = w.word;
+  document.getElementById('mn-trans').value = w.translation;
+  document.getElementById('mn-mnemonic').value = w.mnemonic||'';
+  ['mff-word','mff-trans','mff-mnemonic'].forEach(fid => {
+    document.getElementById(fid).classList.add('has-value');
+  });
+  mnPalId = w.palaceId||null; mnConf = w.confidence;
+  mnEditId = id; mnSelConf(mnConf); mnRenderPalaceChips();
+  const hint = document.getElementById('mn-edit-hint');
+  const btn  = document.getElementById('mn-submit-btn');
+  if(hint) hint.classList.add('visible');
+  if(btn)  btn.textContent = '✓ SPEICHERN';
+  document.getElementById('mn-word').focus();
+  window.scrollTo({ top: document.querySelector('.mnemo-section').offsetTop - 80, behavior:'smooth' });
+}
+
+function mnSetConf(id, v) {
+  mnEnsure();
+  const w=state.mnemo.words.find(w=>w.id===id); if(!w) return;
+  w.confidence=v; save(); mnRender(); mnRenderGlobal();
+}
+
+function mnDelWord(id) {
+  if (mnPendingDel===id) {
+    mnEnsure();
+    state.mnemo.words=state.mnemo.words.filter(w=>w.id!==id);
+    if(mnEditId===id){mnEditId=null;document.getElementById('mn-word').value='';document.getElementById('mn-trans').value='';document.getElementById('mn-mnemonic').value='';}
+    mnPendingDel=null; save(); mnRender(); mnRenderGlobal();
+  } else {
+    mnPendingDel=id;
+    const btn=document.getElementById('mndel-'+id);
+    if(btn){btn.classList.add('confirm');btn.textContent='⚠ NOCHMAL';}
+    setTimeout(()=>{if(mnPendingDel===id){mnPendingDel=null;mnRender();}},3000);
+  }
+}
+
+function mnToggle(id) { mnExpanded[id]=!mnExpanded[id]; mnRender(); }
+
+
+// ── MNEMO STOPWATCH ──
+let MN_SW = {}; // keyed by word id
+
+function mnSwGet(id) {
+  if (!MN_SW[id]) MN_SW[id] = { running:false, accumulated:0, segmentStart:null, interval:null };
+  return MN_SW[id];
+}
+function mnSwFmt(s) { const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60; return h>0?h+':'+String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0'):String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0'); }
+function mnSwFmtH(s) { if(s<60)return s+'s'; const h=Math.floor(s/3600),m=Math.floor((s%3600)/60); return h>0?h+'h '+m+'m':m+'m'; }
+
+function mnSwStart(id) {
+  const s = mnSwGet(id); if(s.running) return;
+  s.running=true; s.segmentStart=Date.now();
+  s.interval = setInterval(() => mnSwTick(id), 500);
+  mnSwUpdateDOM(id);
+}
+function mnSwPause(id) {
+  const s = mnSwGet(id); if(!s.running) return;
+  clearInterval(s.interval); s.interval=null;
+  s.accumulated += Math.floor((Date.now()-s.segmentStart)/1000);
+  s.running=false;
+  mnSwUpdateDOM(id);
+}
+function mnSwSave(id) {
+  const s = mnSwGet(id);
+  if(s.running){ clearInterval(s.interval); s.interval=null; s.accumulated+=Math.floor((Date.now()-s.segmentStart)/1000); s.running=false; }
+  const elapsed = s.accumulated;
+  if(elapsed < 1) return;
+  mnEnsure();
+  const w = state.mnemo.words.find(w=>w.id===id); if(!w) return;
+  if(!w.sessions) w.sessions=[];
+  w.sessions.push({ id:Date.now(), elapsed, date:new Date().toLocaleDateString('de-DE') });
+  MN_SW[id] = { running:false, accumulated:0, segmentStart:null, interval:null };
+  save(); mnRender(); mnRenderGlobal();
+}
+function mnSwDiscard(id) {
+  const s = mnSwGet(id);
+  if(s.running){ clearInterval(s.interval); s.interval=null; }
+  MN_SW[id] = { running:false, accumulated:0, segmentStart:null, interval:null };
+  mnSwUpdateDOM(id);
+}
+function mnSwTick(id) {
+  const s = mnSwGet(id);
+  const el = document.getElementById('mn-sw-clock-'+id);
+  if(el) el.textContent = mnSwFmt(s.accumulated + Math.floor((Date.now()-s.segmentStart)/1000));
+}
+function mnSwUpdateDOM(id) {
+  const s = mnSwGet(id);
+  const cur = s.running ? s.accumulated+Math.floor((Date.now()-s.segmentStart)/1000) : s.accumulated;
+  const clockEl = document.getElementById('mn-sw-clock-'+id);
+  const statEl  = document.getElementById('mn-sw-stat-'+id);
+  const btnsEl  = document.getElementById('mn-sw-btns-'+id);
+  if(!clockEl||!statEl||!btnsEl) return;
+  clockEl.className = 'mn-sw-clock'+(s.running?' running':'');
+  clockEl.textContent = mnSwFmt(cur);
+  statEl.className = 'mn-sw-status'+(s.running?' running':'');
+  statEl.textContent = s.running ? 'LÄUFT...' : (cur>0 ? 'PAUSE — '+mnSwFmt(cur)+' gespeichert' : 'BEREIT');
+  btnsEl.innerHTML = mnSwBtnsHTML(id, s);
+}
+function mnSwBtnsHTML(id, s) {
+  let h = '<div class="mn-sw-btns">';
+  if(!s.running && s.accumulated===0){
+    h += '<button class="mn-sw-btn start" onclick="mnSwStart('+id+')">&#9654; STARTEN</button>';
+  } else if(s.running){
+    h += '<button class="mn-sw-btn pause" onclick="mnSwPause('+id+')">&#9646;&#9646; PAUSE</button>';
+    h += '<button class="mn-sw-btn save"  onclick="mnSwSave('+id+')">&#9209; SPEICHERN</button>';
+  } else {
+    h += '<button class="mn-sw-btn start" onclick="mnSwStart('+id+')">&#9654; FORTSETZEN</button>';
+    h += '<button class="mn-sw-btn save"  onclick="mnSwSave('+id+')">&#9209; SPEICHERN</button>';
+  }
+  h += '</div>';
+  if(s.accumulated>0||s.running)
+    h += '<button class="mn-sw-btn disc" style="width:100%;margin-top:0" onclick="mnSwDiscard('+id+')">&#10005; Verwerfen</button>';
+  return h;
+}
+function mnSwHTML(w) {
+  const s = mnSwGet(w.id);
+  const cur = s.running ? s.accumulated+Math.floor((Date.now()-s.segmentStart)/1000) : s.accumulated;
+  const sessions = w.sessions||[];
+  const totalSec = sessions.reduce((a,ss)=>a+ss.elapsed,0);
+  return '<div class="mn-sw-wrap">'+
+    '<div class="mn-sw-label">CHRONOMETER</div>'+
+    '<div class="mn-sw-clock'+(s.running?' running':'')+'" id="mn-sw-clock-'+w.id+'">'+mnSwFmt(cur)+'</div>'+
+    '<div class="mn-sw-status'+(s.running?' running':'')+'" id="mn-sw-stat-'+w.id+'">'+(s.running?'LÄUFT...':(cur>0?'PAUSE — '+mnSwFmt(cur)+' gespeichert':'BEREIT'))+'</div>'+
+    '<div id="mn-sw-btns-'+w.id+'">'+mnSwBtnsHTML(w.id,s)+'</div>'+
+    (sessions.length>0?
+      '<div class="mn-sw-sessions">'+
+        [...sessions].reverse().map((ss,i)=>'<span class="mn-sw-session">#'+(sessions.length-i)+' '+mnSwFmt(ss.elapsed)+' · '+ss.date+'</span>').join('')+
+      '</div>':'') +
+  '</div>';
+}
+
+function mnRender() {
+  mnEnsure();
+  const q = (document.getElementById('mn-search')||{value:''}).value.toLowerCase().trim();
+  let words = [...state.mnemo.words];
+  if (mnPalFilter !== 'all') words = words.filter(w=>w.palaceId===mnPalFilter);
+  if (mnConfFilter > 0) words = words.filter(w=>w.confidence===mnConfFilter);
+  if (q) words = words.filter(w=>
+    w.word.toLowerCase().includes(q) ||
+    w.translation.toLowerCase().includes(q) ||
+    (w.mnemonic||'').toLowerCase().includes(q) ||
+    (w.palaceId?(state.mnemo.palaces.find(p=>p.id===w.palaceId)||{name:''}).name.toLowerCase().includes(q):false)
+  );
+
+  const list = document.getElementById('mn-words-list');
+  const empty = document.getElementById('mn-empty');
+  const nores = document.getElementById('mn-nores');
+
+  if (state.mnemo.words.length===0) {
+    list.innerHTML=''; empty.style.display='block'; nores.style.display='none';
+    document.getElementById('mn-foot-info').textContent='';
+    return;
+  }
+  empty.style.display='none';
+  nores.style.display = words.length===0 ? 'block' : 'none';
+  list.style.display = words.length===0 ? 'none' : 'flex';
+  list.innerHTML = words.map(w => {
+    const pal = w.palaceId ? state.mnemo.palaces.find(p=>p.id===w.palaceId) : null;
+    const isOpen = mnExpanded[w.id];
+    const isPending = mnPendingDel===w.id;
+    return '<div class="mword-card">'+
+      '<div class="mword-hdr" onclick="mnToggle('+w.id+')">'+
+        '<div style="flex:1;min-width:0">'+
+          '<div class="mword-de">'+esc(w.word)+'</div>'+
+          '<div class="mword-en">'+esc(w.translation)+'</div>'+
+        '</div>'+
+        (pal?'<span class="mword-palace-tag">'+pal.emoji+' '+esc(pal.name)+'</span>':'')+
+        ((w.sessions&&w.sessions.length>0)?'<span class="mword-time-tag">&#9203; '+mnSwFmtH((w.sessions||[]).reduce((a,ss)=>a+ss.elapsed,0))+'</span>':'')+ 
+        '<span class="mword-conf" style="background:'+MN_CC[w.confidence]+'20;color:'+MN_CC[w.confidence]+';border:1px solid '+MN_CC[w.confidence]+'40">'+MN_CE[w.confidence]+'</span>'+
+      '</div>'+
+      '<div class="mword-body'+(isOpen?' open':'')+'">'+
+        (w.mnemonic
+          ? '<div class="mword-mnemonic">'+esc(w.mnemonic)+'</div>'
+          : '<div class="mword-mnemonic empty">Keine Mnemonic-Geschichte.</div>')+
+        mnSwHTML(w)+
+        '<div class="mword-conf-picker">'+
+          [1,2,3,4,5].map(v=>'<button class="mword-cpick'+(w.confidence===v?' active':'')+'" data-v="'+v+'" onclick="mnSetConf('+w.id+','+v+')">'+MN_CE[v]+'</button>').join('')+
+        '</div>'+
+        '<div class="mword-actions">'+
+          '<button class="mword-btn" onclick="mnEditWord('+w.id+')">✏ BEARBEITEN</button>'+
+          '<button class="mword-btn del'+(isPending?' confirm':'')+'" id="mndel-'+w.id+'" onclick="mnDelWord('+w.id+')">'+(isPending?'⚠ NOCHMAL':'✕ LÖSCHEN')+'</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+  document.getElementById('mn-foot-info').textContent = words.length+' von '+state.mnemo.words.length+' Wörtern';
+}
+
+function mnRenderGlobal() {
+  mnEnsure();
+  const words = state.mnemo.words;
+  const total = words.length;
+  const mem = words.filter(w=>w.confidence>=4).length;
+  document.getElementById('mn-total').textContent = total;
+  document.getElementById('mn-memorized').textContent = mem+' memorisiert';
+  const mnTotalSec = (state.mnemo.words||[]).reduce((a,w)=>a+((w.sessions||[]).reduce((b,ss)=>b+ss.elapsed,0)),0);
+  const mnTimeEl = document.getElementById('mn-total-time');
+  if(mnTimeEl) mnTimeEl.textContent = mnTotalSec>0 ? mnSwFmtH(mnTotalSec)+' Gesamtzeit' : '';
+  [1,2,3,4,5].forEach(v=>{
+    const el=document.getElementById('mn-c'+v);
+    if(el) el.textContent=words.filter(w=>w.confidence===v).length;
+  });
+  // wortschatz lives in its own screen — no stat bar update needed here
+}
+
+function mnExportAnki() {
+  mnEnsure();
+  const words=state.mnemo.words;
+  if(words.length===0){alert('Keine Wörter zum Exportieren!');return;}
+  const TAB=String.fromCharCode(9),NL=String.fromCharCode(10);
+  const cl=s=>s?s.split(TAB).join(' ').split(NL).join(' '):'';
+  const lines=words.map(w=>{
+    const pal=w.palaceId?(state.mnemo.palaces.find(p=>p.id===w.palaceId)||{name:''}).name.replace(/ /g,'_'):'';
+    const tags=['de-wortschatz',pal].filter(Boolean).join(' ');
+    return cl(w.word)+TAB+cl(w.translation)+(tags?TAB+tags:'');
+  });
+  const content='#separator:Tab'+NL+'#html:false'+NL+'#tags column:3'+NL+lines.join(NL);
+  const blob=new Blob([content],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='wortschatz_'+new Date().toISOString().slice(0,10)+'.txt';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+// ══════════════════════════════════════
+
+document.getElementById('topic-input').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('tags-input').focus();});
+document.getElementById('tags-input').addEventListener('keydown',e=>{if(e.key==='Enter')addTopic();});
+
+// ── SCREEN SWITCHING ──
+let currentScreen = 'übungen';
+function switchScreen(s) {
+  currentScreen = s;
+  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('screen-' + s).classList.add('active');
+  document.getElementById('nav-' + s).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if(s==='rangliste') rlOnEnter();
+}
+function updateNavCounts() {
+  const übCount = typeof state !== 'undefined' ?
+    ['schreiben','hören','sprechen','grammatik'].reduce((a,k)=>a+(state.topics||[]).reduce((b,t)=>b+(t.log&&t.log[k]?t.log[k].length:0),0),0) : 0;
+  const navÜb = document.getElementById('nav-count-übungen');
+  if(navÜb) navÜb.textContent = übCount||'';
+  const wsCount = (state.mnemo&&state.mnemo.words) ? state.mnemo.words.length : 0;
+  const navWs = document.getElementById('nav-count-wortschatz');
+  if(navWs) navWs.textContent = wsCount||'';
+}
+
+// ══════════════════════════════════════
+// RANGLISTE — Supabase powered
+// ══════════════════════════════════════
+let rlBoard = { players:[] };
+let rlMe = '';
+let rlSort = 'total';
+
+// ── Pull all live data from state ──
+function rlBuildMyEntry(name) {
+  const s  = state.topics.reduce((a,t)=>a+countLog(t,'schreiben'),0);
+  const h  = state.topics.reduce((a,t)=>a+countLog(t,'hören'),0);
+  const sp = state.topics.reduce((a,t)=>a+countLog(t,'sprechen'),0);
+  const g  = state.topics.reduce((a,t)=>a+countLog(t,'grammatik'),0);
+  const m  = state.topics.reduce((a,t)=>a+(t.log&&t.log.schreiben
+    ? t.log.schreiben.reduce((b,e)=>b+(typeof e.mistakes==='number'?e.mistakes:0),0) : 0), 0);
+  const reinforce    = state.topics.reduce((a,t)=>a+(t.reinforce?t.reinforce.length:0),0);
+  const reinforceSolved = state.topics.reduce((a,t)=>a+(t.reinforce?t.reinforce.filter(r=>r.solved).length:0),0);
+  const wortschatz   = (state.mnemo&&state.mnemo.words) ? state.mnemo.words.length : 0;
+  const memorized    = (state.mnemo&&state.mnemo.words) ? state.mnemo.words.filter(w=>w.confidence>=4).length : 0;
+  const totalTimeSec = state.topics.reduce((a,t)=>a+totalSecAll(t),0);
+  return {
+    name,
+    schreiben:s, hören:h, sprechen:sp, grammatik:g,
+    mistakes:m,
+    reinforce, reinforceSolved,
+    wortschatz, memorized,
+    totalTimeSec,
+    total: s+h+sp+g,
+    updated: new Date().toLocaleDateString('de-DE')
+  };
+}
+
+// ── Render the live preview cards in the entry panel ──
+function rlRenderPreview() {
+  const el = document.getElementById('rl-preview');
+  if(!el) return;
+  const d = rlBuildMyEntry('_');
+  const totalH = Math.floor(d.totalTimeSec/3600), totalM = Math.floor((d.totalTimeSec%3600)/60);
+  el.innerHTML = [
+    {cls:'s',  label:'SCHREIBEN',  num:d.schreiben,  sub: d.mistakes+' Fehler'},
+    {cls:'h',  label:'HÖREN/LESEN',num:d.hören,      sub: ''},
+    {cls:'sp', label:'SPRECHEN',   num:d.sprechen,   sub: ''},
+    {cls:'g',  label:'GRAMMATIK',  num:d.grammatik,  sub: ''},
+    {cls:'w',  label:'WORTSCHATZ', num:d.wortschatz, sub: d.memorized+' memorisiert'},
+    {cls:'rein',label:'WIEDERHOLUNG',num:d.reinforce, sub: d.reinforceSolved+' gelöst'},
+  ].map(({cls,label,num,sub})=>
+    '<div class="rl-preview-card '+cls+'">'+
+      '<div class="rl-preview-label">'+label+'</div>'+
+      '<div class="rl-preview-num">'+num+'</div>'+
+      (sub?'<div class="rl-preview-sub">'+sub+'</div>':'')+
+    '</div>'
+  ).join('')+
+  '<div class="rl-preview-card" style="border-color:var(--border2)">'+
+    '<div class="rl-preview-label">GESAMTZEIT</div>'+
+    '<div class="rl-preview-num" style="color:var(--blue);font-size:20px">'+totalH+'h '+pad(totalM)+'m</div>'+
+    '<div class="rl-preview-sub">aktive Übungszeit</div>'+
+  '</div>';
+}
+
+function rlLoadConfig() {
+  // No-op: config is now automatic via Supabase
+}
+
+async function rlSupaPublish() {
+  if (!authUser) return;
+  const name = authUser.user_metadata?.full_name || authUser.email || 'Anonym';
+  rlMe = name;
+  const el = document.getElementById('rl-myname-display');
+  if (el) el.textContent = '👤 ' + name;
+  rlSyncStatus('SYNCHRONISIERT...', 'syncing');
+  rlSpin(true);
+  try {
+    const entry = rlBuildMyEntry(name);
+    const { error } = await supa.from('leaderboard').upsert({
+      user_id: authUser.id,
+      display_name: name,
+      data: entry,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+    if (error) throw error;
+    await rlSupaLoad();
+    const t = new Date().toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
+    rlSyncStatus('ZULETZT: ' + t, 'ok');
+    document.getElementById('rl-hdr-updated').textContent = 'Stand: ' + t + ' Uhr';
+  } catch(e) {
+    rlSyncStatus('FEHLER', 'err');
+    console.error('Leaderboard publish error:', e);
+  }
+  rlSpin(false);
+}
+
+async function rlSupaLoad() {
+  try {
+    const { data, error } = await supa.from('leaderboard').select('display_name, data, updated_at');
+    if (error) throw error;
+    rlBoard.players = (data||[]).map(row => ({
+      ...row.data,
+      name: row.display_name,
+      updated: new Date(row.updated_at).toLocaleDateString('de-DE')
+    }));
+    rlRender();
+    document.getElementById('nav-count-rangliste').textContent = rlBoard.players.length || '';
+    document.getElementById('rl-hdr-count').textContent = rlBoard.players.length;
+  } catch(e) {
+    console.error('Leaderboard load error:', e);
+  }
+}
+
+// ── AUTO-SYNC ──
+let rlSyncTimer = null;
+const RL_SYNC_INTERVAL = 60000;
+
+function rlSyncStatus(msg, state) {
+  const dot = document.getElementById('rl-sync-dot');
+  const lbl = document.getElementById('rl-sync-label');
+  if(lbl) lbl.textContent = msg;
+  if(dot) dot.className = 'rl-sync-dot ' + (state||'');
+}
+
+function rlStartAutoSync() {
+  if(rlSyncTimer) clearInterval(rlSyncTimer);
+  rlSyncTimer = setInterval(rlSupaPublish, RL_SYNC_INTERVAL);
+}
+
+function rlOnEnter() {
+  rlSupaLoad();
+  if (authUser) rlSupaPublish();
+}
+
+function rlDeletePlayer(name) {
+  if(!confirm('Eintrag löschen?')) return;
+  supa.from('leaderboard').delete().eq('user_id', authUser.id)
+    .then(({error}) => {
+      if(!error) { rlSupaLoad(); rlStatus('✓ Gelöscht.','ok'); }
+      else rlStatus('Fehler: '+error.message,'err');
+    });
+}
+
+function rlSetSort(k) {
+  rlSort = k;
+  const sel = document.getElementById('rl-sort-select');
+  if(sel) sel.value = k;
+  rlRender();
+}
+
+function rlSorted(players) {
+  return [...players].sort((a,b)=>{
+    if(rlSort==='mistakes') return (a.mistakes||0)-(b.mistakes||0);
+    return (b[rlSort]||0)-(a[rlSort]||0);
+  });
+}
+
+const RL_MEDALS = ['1','2','3'];
+const RL_RCLS   = ['r1','r2','r3'];
+
+function rlFmtTime(sec) {
+  if(!sec) return '0h';
+  const h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60);
+  return h>0 ? h+'h '+pad(m)+'m' : m+'m';
+}
+
+function rlRender() {
+  const list = document.getElementById('rl-player-list');
+  const players = rlBoard.players||[];
+  document.getElementById('rl-hdr-count').textContent = players.length;
+  document.getElementById('nav-count-rangliste').textContent = players.length||'';
+
+  if(players.length===0){
+    list.innerHTML='<div class="rl-empty"><div class="rl-empty-icon">🏆</div><p>Noch keine Einträge.<br>Lade die Seite nach dem Anmelden neu!</p></div>';
+    chRender();
+    return;
+  }
+
+  const ranked = rlSorted(players);
+  const SKILL_COLS = [
+    {k:'schreiben',lbl:'SCHREIBEN',col:'var(--schreiben)'},
+    {k:'hören',    lbl:'HÖREN',    col:'var(--hören)'},
+    {k:'sprechen', lbl:'SPRECHEN', col:'var(--sprechen)'},
+    {k:'grammatik',lbl:'GRAMMATIK',col:'var(--grammatik)'},
+  ];
+  const maxSkill = {};
+  SKILL_COLS.forEach(s => { maxSkill[s.k] = Math.max(1,...ranked.map(p=>p[s.k]||0)); });
+  list.innerHTML = ranked.map((p,i)=>{
+    const rk = i<3?RL_RCLS[i]:'rn';
+    const medal = i<3?RL_MEDALS[i]:(i+1)+'';
+    const isYou = rlMe && p.name.toLowerCase()===rlMe.toLowerCase();
+    const hrs = p.totalTimeSec ? rlFmtTime(p.totalTimeSec) : '0h';
+    const bars = SKILL_COLS.map(s=>{
+      const v=p[s.k]||0, pct=Math.round((v/maxSkill[s.k])*100);
+      return '<div class="rl-row-bar-item">'+
+        '<div class="rl-row-bar-lbl">'+s.lbl+'</div>'+
+        '<div class="rl-row-bar-track"><div class="rl-row-bar-fill" style="width:'+pct+'%;background:'+s.col+'"></div></div>'+
+        '<div class="rl-row-bar-val" style="color:'+s.col+'">'+v+'</div>'+
+      '</div>';
+    }).join('');
+    return '<div class="rl-row '+rk+(isYou?' is-you':'')+'" data-name="'+esc(p.name)+'">'+
+      '<div class="rl-row-inner">'+
+        '<div class="rl-row-rank">'+medal+'</div>'+
+        '<div class="rl-row-name-col">'+
+          '<button class="rl-row-name" onclick="rlOpenDetail(\''+esc(p.name)+'\')">'+
+            esc(p.name)+(isYou?'<span class="rl-you-badge">DU</span>':'')+
+          '</button>'+
+          '<div class="rl-row-date">Zuletzt: '+esc(p.updated||'—')+'</div>'+
+        '</div>'+
+        '<div class="rl-row-kpis">'+
+          '<div class="rl-row-kpi"><div class="rl-row-kpi-num">'+(p.total||0)+'</div><div class="rl-row-kpi-lbl">ÜBUNGEN</div></div>'+
+          '<div class="rl-row-kpi-divider"></div>'+
+          '<div class="rl-row-kpi words"><div class="rl-row-kpi-num">'+(p.wortschatz||0)+'</div><div class="rl-row-kpi-lbl">WÖRTER</div></div>'+
+          '<div class="rl-row-kpi-divider"></div>'+
+          '<div class="rl-row-kpi hours"><div class="rl-row-kpi-num">'+hrs+'</div><div class="rl-row-kpi-lbl">STUNDEN</div></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="rl-row-bars">'+bars+'</div>'+
+    '</div>';
+  }).join('');
+
+  chRender();
+}
+
+// ── PLAYER DETAIL MODAL ──
+function rlOpenDetail(name) {
+  const players = rlBoard.players||[];
+  const ranked = rlSorted(players);
+  const rank = ranked.findIndex(p=>p.name===name);
+  const p = players.find(p=>p.name===name);
+  if(!p) return;
+
+  const maxV = {
+    schreiben:  Math.max(1,...players.map(x=>x.schreiben||0)),
+    hören:      Math.max(1,...players.map(x=>x.hören||0)),
+    sprechen:   Math.max(1,...players.map(x=>x.sprechen||0)),
+    grammatik:  Math.max(1,...players.map(x=>x.grammatik||0)),
+    wortschatz: Math.max(1,...players.map(x=>x.wortschatz||0)),
+  };
+
+  const medal = rank<3?RL_MEDALS[rank]:(rank+1)+'';
+  document.getElementById('rl-detail-rank').textContent = 'PLATZ '+(rank+1)+' VON '+players.length;
+  document.getElementById('rl-detail-name').textContent = p.name;
+  document.getElementById('rl-detail-date').textContent = 'Zuletzt aktualisiert: '+(p.updated||'—');
+
+  // KPI row: total, hours, mistakes
+  const hrs = p.totalTimeSec ? rlFmtTime(p.totalTimeSec) : '0h';
+  document.getElementById('rl-detail-kpis').innerHTML =
+    '<div class="rl-detail-kpi"><div class="rl-detail-kpi-num" style="color:var(--ink)">'+(p.total||0)+'</div><div class="rl-detail-kpi-lbl">ÜBUNGEN GESAMT</div></div>'+
+    '<div class="rl-detail-kpi"><div class="rl-detail-kpi-num" style="color:var(--blue)">'+hrs+'</div><div class="rl-detail-kpi-lbl">AKTIVE ZEIT</div></div>'+
+    '<div class="rl-detail-kpi"><div class="rl-detail-kpi-num" style="color:var(--schreiben)">'+(p.mistakes||0)+'</div><div class="rl-detail-kpi-lbl">FEHLER TOTAL</div></div>';
+
+  // Skill bars
+  const skills = [
+    {k:'schreiben', lbl:'SCHREIBEN',  col:'var(--schreiben)'},
+    {k:'hören',     lbl:'HÖREN',      col:'var(--hören)'},
+    {k:'sprechen',  lbl:'SPRECHEN',   col:'var(--sprechen)'},
+    {k:'grammatik', lbl:'GRAMMATIK',  col:'var(--grammatik)'},
+    {k:'wortschatz',lbl:'WORTSCHATZ', col:'var(--wortschatz)'},
+  ];
+  document.getElementById('rl-detail-bars').innerHTML = skills.map(({k,lbl,col})=>{
+    const v=p[k]||0, pct=Math.round((v/maxV[k])*100);
+    return '<div class="rl-detail-bar-row">'+
+      '<div class="rl-detail-bar-lbl" style="color:'+col+'">'+lbl+'</div>'+
+      '<div class="rl-detail-bar-track"><div class="rl-detail-bar-fill" style="width:'+pct+'%;background:'+col+'"></div></div>'+
+      '<div class="rl-detail-bar-val" style="color:'+col+'">'+v+'</div>'+
+    '</div>';
+  }).join('');
+
+  // Footer — delete own or challenge others
+  const isYou = rlMe && p.name.toLowerCase()===rlMe.toLowerCase();
+  document.getElementById('rl-detail-footer').innerHTML = isYou
+    ? '<button class="btn btn-ghost" style="font-size:10px;padding:7px 14px" onclick="rlDeletePlayer(\''+esc(p.name)+'\');rlDetailCloseBtn()">✕ Meinen Eintrag löschen</button>'
+    : '<button class="btn btn-ink" style="font-size:10px;padding:7px 14px" onclick="chQuick(\''+esc(p.name)+'\');rlDetailCloseBtn()">⚔ Herausfordern</button>';
+
+  document.getElementById('rl-detail-overlay').classList.add('open');
+}
+
+function rlDetailClose(e) {
+  if(e.target===document.getElementById('rl-detail-overlay')) rlDetailCloseBtn();
+}
+function rlDetailCloseBtn() {
+  document.getElementById('rl-detail-overlay').classList.remove('open');
+}
+
+// ── CHALLENGES ──
+const CH_KEY = 'de_rl_challenges';
+let chType = 'total';
+let challenges = [];
+
+function chLoad() {
+  try { const r=localStorage.getItem(CH_KEY); if(r) challenges=JSON.parse(r); } catch(e){}
+}
+function chSave() {
+  try { localStorage.setItem(CH_KEY, JSON.stringify(challenges)); } catch(e){}
+}
+function chSelType(v) {
+  chType=v;
+  document.querySelectorAll('.rl-ch-type-pill').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.rl-ch-type-pill[data-v="'+v+'"]').classList.add('active');
+}
+function chQuick(opponent) {
+  document.getElementById('ch-opponent').value = opponent;
+  document.getElementById('ch-target').value = '';
+  chType='total';
+  document.querySelectorAll('.rl-ch-type-pill').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.rl-ch-type-pill[data-v="total"]').classList.add('active');
+  document.getElementById('ch-opponent').scrollIntoView({behavior:'smooth', block:'center'});
+  document.getElementById('ch-opponent').focus();
+}
+function chCreate() {
+  const opp = document.getElementById('ch-opponent').value.trim();
+  const target = parseInt(document.getElementById('ch-target').value)||0;
+  if(!opp){ document.getElementById('ch-opponent').style.borderColor='var(--accent)'; setTimeout(()=>document.getElementById('ch-opponent').style.borderColor='',700); return; }
+  if(!rlMe){ rlStatus('Bitte zuerst deinen Namen eingeben und Daten veröffentlichen.','err'); return; }
+  if(target<1){ document.getElementById('ch-target').style.borderColor='var(--accent)'; setTimeout(()=>document.getElementById('ch-target').style.borderColor='',700); return; }
+
+  // Snapshot current values for baseline
+  const myEntry = rlBuildMyEntry(rlMe);
+  const oppEntry = (rlBoard.players||[]).find(p=>p.name.toLowerCase()===opp.toLowerCase());
+
+  challenges.push({
+    id: Date.now(),
+    me: rlMe,
+    opponent: opp,
+    type: chType,
+    target,
+    myBase: myEntry[chType]||0,
+    oppBase: oppEntry ? (oppEntry[chType]||0) : 0,
+    created: new Date().toLocaleDateString('de-DE'),
+    status: 'open'
+  });
+  chSave();
+  document.getElementById('ch-opponent').value='';
+  document.getElementById('ch-target').value='';
+  chRender();
+}
+function chDelete(id) {
+  challenges = challenges.filter(c=>c.id!==id);
+  chSave(); chRender();
+}
+
+const CH_TYPE_LABELS = {total:'GESAMT',schreiben:'SCHREIBEN',hören:'HÖREN',sprechen:'SPRECHEN',grammatik:'GRAMMATIK',wortschatz:'WORTSCHATZ'};
+
+function chRender() {
+  const el = document.getElementById('ch-list');
+  if(!challenges.length){
+    el.innerHTML='<div class="rl-empty" style="border-style:dashed"><div class="rl-empty-icon">⚔</div><p>Noch keine Herausforderungen.<br>Fordere jemanden aus der Rangliste heraus!</p></div>';
+    return;
+  }
+  const myLive = rlBuildMyEntry(rlMe||'_');
+  el.innerHTML = challenges.map(c=>{
+    const myLiveVal = myLive[c.type]||0;
+    const myProgress = Math.max(0, myLiveVal - c.myBase);
+
+    const oppEntry = (rlBoard.players||[]).find(p=>p.name.toLowerCase()===c.opponent.toLowerCase());
+    const oppLiveVal = oppEntry ? (oppEntry[c.type]||0) : c.oppBase;
+    const oppProgress = Math.max(0, oppLiveVal - c.oppBase);
+
+    const myPct  = Math.min(100, Math.round((myProgress /c.target)*100));
+    const oppPct = Math.min(100, Math.round((oppProgress/c.target)*100));
+
+    let status = 'open';
+    if(myProgress  >= c.target) status='won';
+    if(oppProgress >= c.target && myProgress < c.target) status='lost';
+
+    const statusLabel = {open:'⚔ LÄUFT',won:'🥇 GEWONNEN',lost:'VERLOREN'}[status];
+    const myLeading = myProgress >= oppProgress;
+
+    return '<div class="rl-challenge-card '+status+'">'+
+      '<div>'+
+        '<div class="rl-challenge-title">'+esc(c.me)+' vs. '+esc(c.opponent)+'</div>'+
+        '<div class="rl-challenge-meta">'+CH_TYPE_LABELS[c.type]+' — Ziel: <strong>+'+c.target+' Übungen</strong> · Seit: '+c.created+'</div>'+
+        '<div class="rl-challenge-progress">'+
+          '<div class="rl-ch-prog-side">'+
+            '<div class="rl-ch-prog-name">'+esc(c.me)+' (DU)</div>'+
+            '<div class="rl-ch-prog-val'+(myLeading?' leading':'')+'">'+myProgress+' / '+c.target+'</div>'+
+            '<div class="rl-ch-prog-bar-track"><div class="rl-ch-prog-bar-fill you" style="width:'+myPct+'%"></div></div>'+
+          '</div>'+
+          '<div class="rl-ch-prog-side">'+
+            '<div class="rl-ch-prog-name">'+esc(c.opponent)+'</div>'+
+            '<div class="rl-ch-prog-val'+(!myLeading?' leading':'')+'">'+oppProgress+' / '+c.target+'</div>'+
+            '<div class="rl-ch-prog-bar-track"><div class="rl-ch-prog-bar-fill" style="width:'+oppPct+'%"></div></div>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">'+
+        '<span class="rl-challenge-status-badge '+status+'">'+statusLabel+'</span>'+
+        '<button class="rl-ch-del" onclick="chDelete('+c.id+')" title="Löschen">✕</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function rlStatus(msg,type){
+  const el=document.getElementById('rl-status');
+  el.innerHTML=msg; el.className='rl-status '+type;
+  if(type==='ok') setTimeout(()=>{ if(el.className.includes('ok'))el.style.display='none'; },4000);
+}
+function rlSpin(on){ document.getElementById('rl-spin').style.display=on?'inline-block':'none'; }
+
+
+// ══════════════════════════════════════════════
+// SUPABASE — AUTH + CLOUD SYNC
+// ══════════════════════════════════════════════
+const SUPA_URL  = 'https://lihzogriuebxahpnzzaf.supabase.co';
+const SUPA_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxpaHpvZ3JpdWVieGFocG56emFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2Mjc4NDIsImV4cCI6MjA4OTIwMzg0Mn0.ksaL-Xryno3uphGw-oHrmlcatAAaqyEtDbwBlzOgrJ8';
+const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+let authUser = null;
+let cloudSyncTimer = null;
+const CLOUD_SYNC_INTERVAL = 30000; // 30 seconds
+
+// ── AUTH INIT ──
+async function authInit() {
+  // Handle OAuth redirect
+  const { data: { session } } = await supa.auth.getSession();
+  if (session) {
+    authUser = session.user;
+    authOnSignedIn();
+  } else {
+    document.getElementById('auth-screen').style.display = 'flex';
+  }
+
+  // Listen for auth changes
+  supa.auth.onAuthStateChange((_event, session) => {
+    if (session) {
+      authUser = session.user;
+      authOnSignedIn();
+    } else {
+      authUser = null;
+      authOnSignedOut();
+    }
+  });
+}
+
+async function authSignInGoogle() {
+  const { error } = await supa.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: 'https://leofacultative-bot.github.io/deutsch-tracker' }
+  });
+  if (error) {
+    const el = document.getElementById('auth-error');
+    el.textContent = 'Fehler: ' + error.message;
+    el.style.display = 'block';
+  }
+}
+
+async function authSignOut() {
+  await supa.auth.signOut();
+}
+
+function authOnSignedIn() {
+  // Hide auth screen
+  document.getElementById('auth-screen').style.display = 'none';
+
+  // Show nav user badge
+  const navUser = document.getElementById('nav-user');
+  const navSync = document.getElementById('nav-sync');
+  navUser.style.display = 'flex';
+  navSync.style.display = 'flex';
+
+  // Set avatar initials
+  const name = authUser.user_metadata?.full_name || authUser.email || '?';
+  const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('nav-user-avatar').textContent = initials;
+
+  // Load from cloud then start auto-sync
+  cloudLoad().then(() => {
+    renderTagFilter(); renderFiltered();
+    mnRenderPalaceChips(); mnRenderPalaceFilter(); mnRender(); mnRenderGlobal();
+    updateNavCounts();
+    startCloudSync();
+    // Auto-publish to leaderboard
+    rlSupaPublish();
+    rlStartAutoSync();
+  });
+}
+
+function authOnSignedOut() {
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('nav-user').style.display = 'none';
+  document.getElementById('nav-sync').style.display = 'none';
+  if (cloudSyncTimer) clearInterval(cloudSyncTimer);
+}
+
+// ── CLOUD SYNC ──
+function navSyncStatus(state) {
+  const dot = document.getElementById('nav-sync-dot');
+  const lbl = document.getElementById('nav-sync-label');
+  if (!dot) return;
+  dot.className = 'nav-sync-dot ' + state;
+  if (state === 'syncing') lbl.textContent = 'SYNC...';
+  else if (state === 'ok') {
+    const t = new Date().toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
+    lbl.textContent = t;
+  }
+  else if (state === 'err') lbl.textContent = 'FEHLER';
+}
+
+async function cloudSave() {
+  if (!authUser) return;
+  navSyncStatus('syncing');
+  try {
+    const payload = {
+      user_id: authUser.id,
+      data: state,
+      updated_at: new Date().toISOString()
+    };
+    const { error } = await supa.from('tracker_data')
+      .upsert(payload, { onConflict: 'user_id' });
+    if (error) throw error;
+    navSyncStatus('ok');
+  } catch(e) {
+    navSyncStatus('err');
+    console.error('Cloud save error:', e);
+  }
+}
+
+async function cloudLoad() {
+  if (!authUser) return;
+  navSyncStatus('syncing');
+  try {
+    const { data, error } = await supa.from('tracker_data')
+      .select('data')
+      .eq('user_id', authUser.id)
+      .single();
+    if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows
+    if (data && data.data) {
+      state = data.data;
+      // Ensure all required fields exist
+      state.topics.forEach(t => {
+        if (!t.log) t.log = {};
+        TYPES.forEach(k => { if (!t.log[k]) t.log[k] = []; });
+        if (!t.tags) t.tags = [];
+        if (!t.reinforce) t.reinforce = [];
+      });
+      if (!state.mnemo) state.mnemo = { words:[], palaces:[] };
+    }
+    navSyncStatus('ok');
+  } catch(e) {
+    navSyncStatus('err');
+    console.error('Cloud load error:', e);
+    // Fall back to localStorage if cloud fails
+    load();
+  }
+}
+
+function startCloudSync() {
+  if (cloudSyncTimer) clearInterval(cloudSyncTimer);
+  cloudSyncTimer = setInterval(cloudSave, CLOUD_SYNC_INTERVAL);
+}
+
+// Override save() to also sync to cloud
+const _localSave = save;
+save = function() {
+  _localSave();
+  if (authUser) { cloudSave(); rlSupaPublish(); }
+};
+
+// load() is now called after auth — see authOnSignedIn()
+authInit();
+if(!state.mnemo)state.mnemo={words:[],palaces:[]};
+renderTagFilter(); renderFiltered();
+mnRenderPalaceChips(); mnRenderPalaceFilter(); mnRender(); mnRenderGlobal();
+updateNavCounts();
+rlLoadConfig();
+chLoad();
+chRender();
+</script>
+</body>
+</html>
