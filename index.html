@@ -1584,7 +1584,7 @@ function renderGlobal() {
   });
   const gRtotal=state.topics.reduce((a,t)=>a+(t.reinforce?t.reinforce.length:0),0);
   const gRsolved=state.topics.reduce((a,t)=>a+(t.reinforce?t.reinforce.filter(r=>r.solved).length:0),0);
-  document.getElementById('g-reinforce').textContent=gRtotal-gRsolved;
+  document.getElementById('g-reinforce').textContent=gRtotal;
   document.getElementById('g-reinforce-sub').textContent=gRsolved+' '+l.reinforceSolvedSub+' / '+gRtotal+' total';
   document.getElementById('gb-reinforce').style.width=gRtotal>0?Math.round((gRsolved/gRtotal)*100)+'%':'0%';
 }
