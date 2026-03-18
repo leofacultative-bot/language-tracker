@@ -593,7 +593,7 @@ h1 em{color:var(--accent);font-style:italic;}
     <div class="header-right">
       <div id="total-done" class="header-total">0</div>
       <div class="header-total-label" id="total-done-label">TOTAL EXERCISES</div>
-      <div id="total-time" class="header-time">0h 00m total time</div>
+      <div id="total-time" class="header-time">00h 00m 00s</div>
     </div>
   </header>
 
@@ -1568,8 +1568,8 @@ function renderGlobal() {
   let gSec=0;
   state.topics.forEach(t=>{TYPES.forEach(k=>totals[k]+=countLog(t,k));gSec+=totalSecAll(t);});
   document.getElementById('total-done').textContent=TYPES.reduce((a,k)=>a+totals[k],0);
-  const h=Math.floor(gSec/3600),m=Math.floor((gSec%3600)/60);
-  document.getElementById('total-time').textContent=h+'h '+pad(m)+'m '+l.totalTimeLabel;
+  const h=Math.floor(gSec/3600),m=Math.floor((gSec%3600)/60),s=Math.floor(gSec%60);
+  document.getElementById('total-time').textContent=pad(h)+'h '+pad(m)+'m '+pad(s)+'s';
   TYPES.forEach(k=>{
     const gEl=document.getElementById('g-'+k); if(!gEl)return;
     gEl.textContent=totals[k]||0;
@@ -2071,7 +2071,7 @@ function rlBuildMyEntry(name){
 function rlRenderPreview(){
   const el=document.getElementById('rl-preview'); if(!el)return;
   const l=L(); const d=rlBuildMyEntry('_');
-  const totalH=Math.floor(d.totalTimeSec/3600),totalM=Math.floor((d.totalTimeSec%3600)/60);
+  const totalH=Math.floor(d.totalTimeSec/3600),totalM=Math.floor((d.totalTimeSec%3600)/60),totalS=Math.floor(d.totalTimeSec%60);
   el.innerHTML=[
     {cls:'s',  label:l.slWriting,  num:d.writing,  sub:d.mistakes+' '+l.modalMistakesSub},
     {cls:'h',  label:l.slListening,num:d.listening, sub:''},
@@ -2088,7 +2088,7 @@ function rlRenderPreview(){
   ).join('')+
   '<div class="rl-preview-card" style="border-color:var(--border2)">'+
     '<div class="rl-preview-label">'+l.rlDetailTime+'</div>'+
-    '<div class="rl-preview-num" style="color:var(--blue);font-size:20px">'+totalH+'h '+pad(totalM)+'m</div>'+
+    '<div class="rl-preview-num" style="color:var(--blue);font-size:20px">'+pad(totalH)+'h '+pad(totalM)+'m '+pad(totalS)+'s</div>'+
   '</div>';
 }
 
@@ -2127,7 +2127,7 @@ function rlDeletePlayer(){ if(!confirm(L().rlDeleteConfirm))return; supa.from('l
 function rlSetSort(k){ rlSort=k; const sel=document.getElementById('rl-sort-select'); if(sel)sel.value=k; rlRender(); }
 function rlSorted(players){ return [...players].sort((a,b)=>{ if(rlSort==='mistakes')return(a.mistakes||0)-(b.mistakes||0); return(b[rlSort]||0)-(a[rlSort]||0); }); }
 const RL_MEDALS=['🥇','🥈','🥉'];
-function rlFmtTime(sec){ if(!sec)return '0h'; const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60); return h>0?h+'h '+pad(m)+'m':m+'m'; }
+function rlFmtTime(sec){ if(!sec)return '00h 00m 00s'; const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=Math.floor(sec%60); return pad(h)+'h '+pad(m)+'m '+pad(s)+'s'; }
 
 function rlRender(){
   const l=L();
