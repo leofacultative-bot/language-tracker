@@ -2062,10 +2062,11 @@ function rlBuildMyEntry(name){
   const m=state.topics.reduce((a,t)=>a+(t.log&&t.log.writing?t.log.writing.reduce((b,e)=>b+(typeof e.mistakes==='number'?e.mistakes:0),0):0),0);
   const reinforce=state.topics.reduce((a,t)=>a+(t.reinforce?t.reinforce.length:0),0);
   const reinforceSolved=state.topics.reduce((a,t)=>a+(t.reinforce?t.reinforce.filter(r=>r.solved).length:0),0);
+  const reinforceTimeSec=state.topics.reduce((a,t)=>a+(t.reinforce||[]).reduce((b,r)=>(r.attempts||[]).reduce((c,x)=>c+x.elapsed,b),0),0);
   const vocab=(state.mnemo&&state.mnemo.words)?state.mnemo.words.length:0;
   const memorized=(state.mnemo&&state.mnemo.words)?state.mnemo.words.filter(w=>w.confidence>=4).length:0;
   const totalTimeSec=state.topics.reduce((a,t)=>a+totalSecAll(t),0);
-  return { name, writing:w, listening:li, speaking:sp, grammar:g, mistakes:m, reinforce, reinforceSolved, vocab, memorized, totalTimeSec, total:w+li+sp+g, lang:currentLang, updated:new Date().toLocaleDateString() };
+  return { name, writing:w, listening:li, speaking:sp, grammar:g, mistakes:m, reinforce, reinforceSolved, reinforceTimeSec, vocab, memorized, totalTimeSec, total:w+li+sp+g, lang:currentLang, updated:new Date().toLocaleDateString() };
 }
 
 function rlRenderPreview(){
@@ -2078,7 +2079,7 @@ function rlRenderPreview(){
     {cls:'sp', label:l.slSpeaking, num:d.speaking,  sub:''},
     {cls:'g',  label:l.slGrammar,  num:d.grammar,   sub:''},
     {cls:'w',  label:l.navVocab,   num:d.vocab,     sub:d.memorized+' '+l.mnMemorized},
-    {cls:'rein',label:l.slReinforce,num:d.reinforce,sub:d.reinforceSolved+' '+l.reinforceSolvedSub},
+    {cls:'rein',label:l.slReinforce,num:d.reinforce,sub:rlFmtTime(d.reinforceTimeSec)+' '+l.rlDetailTime},
   ].map(({cls,label,num,sub})=>
     '<div class="rl-preview-card '+cls+'">'+
       '<div class="rl-preview-label">'+label+'</div>'+
